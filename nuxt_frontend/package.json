@@ -1,19 +1,39 @@
 {
   "name": "nuxt_frontend",
   "type": "module",
-  "private": true,
+  "private": false,
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "ui:add": "npx --yes ui-thing@latest add"
   },
   "dependencies": {
+    "@nuxt/fonts": "^0.11.4",
+    "@nuxt/icon": "^2.1.0",
     "@nuxt/ui": "^4.1.0",
-    "nuxt": "^4.1.3",
+    "@nuxtjs/color-mode": "^3.5.2",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/vite": "^4.1.16",
+    "@vueuse/nuxt": "^14.0.0",
+    "lucide-vue-next": "^0.548.0",
+    "motion-v": "^1.7.4",
+    "nuxt": "^4.2.0",
+    "reka-ui": "^2.6.0",
+    "tailwind-merge": "^3.3.1",
+    "tailwind-variants": "^3.1.1",
+    "tailwindcss": "^4.1.16",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3",
-    "vuedraggable": "^4.1.0"
+    "vue-sonner": "^2.0.9"
+  },
+  "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.7.1",
+    "tw-animate-css": "^1.4.0",
+    "typescript": "^5.9.3"
   }
 }
