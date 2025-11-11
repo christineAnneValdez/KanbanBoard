@@ -40,17 +40,45 @@ class TaskCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::setFromDb(); // set columns from db columns.
+        CRUD::column('name')->label('Task Title');
+        CRUD::column('description')->label('Description');
+        CRUD::column('sort')->label('Sort Order');
 
-         $this->crud->addColumn([
-            'name'  => 'title',
-            'label' => 'Title',
-            'type'  => 'text',
+        CRUD::addColumn([
+            'name' => 'group_id',
+            'type' => 'select',
+            'entity' => 'group',
+            'attribute' => 'name',
+            'model' => "App\Models\Group",
+            'label' => 'Group'
+        ]);
+         CRUD::addColumn([
+            'name' => 'project_id',
+            'type' => 'select',
+            'entity' => 'project',
+            'attribute' => 'name',
+            'model' => "App\Models\Project",
+            'label' => 'Project'
         ]);
 
-        $this->crud->addColumn([
-            'name'  => 'status',
-            'label' => 'Status',
-            'type'  => 'enum',
+           CRUD::addColumn([
+            'name' => 'labels',
+            'label' => 'Labels',
+            'type' => 'closure',
+            'function' => function ($entry) {
+                return $entry->labels->map(function ($label) {
+                    return "<span style='
+                        background:{$label->color};
+                        color:#fff;
+                        padding:2px 8px;
+                        border-radius:4px;
+                        font-size:12px;
+                        margin-right:4px;
+                        white-space:nowrap;
+                    '>{$label->name}</span>";
+                })->implode(' ');
+            },
+            'escaped' => false,
         ]);
     }
 
@@ -62,26 +90,90 @@ class TaskCrudController extends CrudController
      */
     protected function setupCreateOperation()
     {
-        $this->crud->setValidation(\App\Http\Requests\TaskRequest::class);
+        CRUD::setValidation(TaskRequest::class);
 
-        $this->crud->addField([
-            'name'  => 'title',
-            'label' => 'Title',
-            'type'  => 'text',
+        CRUD::field('name')->label('Task Title')->type('text');
+        CRUD::field('description')->label('Description')->type('textarea')->nullable(true);
+        CRUD::field('sort')->label('Sort Order')->type('number')->default(0);
+
+        CRUD::addField([
+            'name' => 'group_id',
+            'type' => 'select',
+            'entity' => 'group',
+            'attribute' => 'name',
+            'model' => "App\Models\Group",
+            'label' => 'Group'
         ]);
 
-        $this->crud->addField([
-            'name'    => 'status',
-            'label'   => 'Status',
-            'type'    => 'select_from_array',
-            'options' => [
-                'todo' => 'To Do',
-                'in_progress' => 'In Progress',
-                'done' => 'Done',
-            ],
-            'default' => 'todo',
+        CRUD::addField([
+            'name' => 'project_id',
+            'type' => 'select',
+            'entity' => 'project',
+            'attribute' => 'name',
+            'model' => "App\Models\Project",
+            'label' => 'Project',
+            'allows_null' => true,
         ]);
+         CRUD::addField([
+            'name'        => 'labels',              // relation name
+            'type'        => 'checklist',           // ✅ shows as checkboxes
+            'entity'      => 'labels',
+            'attribute'   => 'name',
+            'model'       => 'App\Models\Label',
+            'label'       => 'Labels',
+            'pivot'       => true,                  // since it's many-to-many
+        ]);
+
     }
+
+    protected function setupShowOperation()
+    {
+        CRUD::column('name')->label('Task Title');
+        CRUD::column('description')->label('Description');
+        CRUD::column('sort')->label('Sort Order');
+
+        CRUD::addColumn([
+            'name' => 'group_id',
+            'type' => 'select',
+            'entity' => 'group',
+            'attribute' => 'name',
+            'model' => "App\Models\Group",
+            'label' => 'Group'
+        ]);
+
+        CRUD::addColumn([
+            'name' => 'project_id',
+            'type' => 'select',
+            'entity' => 'project',
+            'attribute' => 'name',
+            'model' => "App\Models\Project",
+            'label' => 'Project'
+        ]);
+
+         CRUD::addColumn([
+            'name' => 'labels',
+            'label' => 'Labels',
+            'type' => 'closure',
+            'function' => function ($entry) {
+                return $entry->labels->map(function ($label) {
+                    return "<span style='
+                        background:{$label->color};
+                        color:#fff;
+                        padding:3px 8px;
+                        border-radius:5px;
+                        font-size:13px;
+                        margin-right:5px;
+                        white-space:nowrap;
+                    '>{$label->name}</span>";
+                })->implode(' ');
+            },
+            'escaped' => false,
+        ]);
+
+        CRUD::column('created_at')->label('Created At')->type('datetime');
+        CRUD::column('updated_at')->label('Last Updated')->type('datetime');
+    }
+
 
     /**
      * Define what happens when the Update operation is loaded.

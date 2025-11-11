@@ -53,11 +53,9 @@ export default defineNuxtConfig({
     serverBundle: "local",
   },
 
-  css: ["~/assets/css/tailwind.css"],
+  css: ["~/assets/css/tailwind.css", "~/assets/css/richtext.css"],
 
-  vite: {
-    plugins: [tailwindcss()],
-  },
+  
 
   nitro: {
   devProxy: {

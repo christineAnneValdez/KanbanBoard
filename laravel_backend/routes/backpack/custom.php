@@ -16,7 +16,12 @@ Route::group([
     ),
     'namespace' => 'App\Http\Controllers\Admin',
 ], function () { // custom admin routes
+    Route::crud('project', 'ProjectCrudController');
+    Route::crud('group', 'GroupCrudController');
     Route::crud('task', 'TaskCrudController');
+    Route::crud('label', 'LabelCrudController');
+    Route::crud('label-task', 'LabelTaskCrudController');
+    Route::crud('checklist', 'ChecklistCrudController');
 }); // this should be the absolute last line of this file
 
 /**

@@ -11,11 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('tasks', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->enum('status', ['todo', 'in_progress', 'done'])->default('todo');
-            $table->timestamps();
+        Schema::table('tasks', function (Blueprint $table) {
+             $table->longText('description')->nullable()->change();
         });
     }
 
@@ -24,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tasks');
+        Schema::table('tasks', function (Blueprint $table) {
+             $table->string('description', 255)->nullable()->change();
+        });
     }
 };

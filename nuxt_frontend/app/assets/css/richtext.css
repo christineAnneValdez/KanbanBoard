@@ -1,0 +1,71 @@
+@reference "tailwindcss";
+
+/* Base container */
+.description-content {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #374151;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* ✅ Handle Quill’s data-list bullets */
+.description-content [data-list="bullet"] {
+  position: relative;
+  display: block;
+  padding-left: 1.2em; /* space for bullet */
+}
+.description-content [data-list="bullet"]::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* ✅ Handle Quill’s data-list numbering */
+.description-content [data-list="ordered"] {
+  position: relative;
+  display: block;
+  padding-left: 1.4em;
+  counter-increment: list-item;
+}
+.description-content [data-list="ordered"]::before {
+  content: counter(list-item, decimal) ".";
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* ✅ Reset counter at the start of each sequence */
+.description-content [data-list="ordered"]:first-child {
+  counter-reset: list-item;
+}
+
+/* ✅ Indentation levels (for Quill nested lists) */
+.description-content .ql-indent-1 {
+  margin-left: 1.5rem !important;
+}
+.description-content .ql-indent-2 {
+  margin-left: 3rem !important;
+}
+.description-content .ql-indent-3 {
+  margin-left: 4.5rem !important;
+}
+.description-content .ql-indent-4 {
+  margin-left: 6rem !important;
+}
+
+/* ✅ Spacing between lines */
+.description-content [data-list] {
+  margin-bottom: 0.3rem;
+}
+
+/* ✅ Paragraphs */
+.description-content p {
+  margin: 0.3rem 0;
+}
+
+/* ✅ Preserve all spacing */
+.description-content * {
+  white-space: pre-wrap !important;
+}

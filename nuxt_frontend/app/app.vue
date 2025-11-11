@@ -5,6 +5,6 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <UiSonner /> 
+    <UiSonner />
   </div>
 </template>
