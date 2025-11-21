@@ -6,11 +6,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
+use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasRoles, HasFactory, Notifiable, CrudTrait, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -45,4 +48,10 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function projects()
+{
+    return $this->belongsToMany(Project::class, 'project_user')
+                ->withTimestamps();
+}
 }

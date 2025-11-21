@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\UserCrudController;
+use Backpack\PermissionManager\app\Http\Controllers\RoleCrudController;
+use Backpack\PermissionManager\app\Http\Controllers\PermissionCrudController;
 
 // --------------------------
 // Custom Backpack Routes
@@ -15,13 +18,33 @@ Route::group([
         (array) config('backpack.base.middleware_key', 'admin')
     ),
     'namespace' => 'App\Http\Controllers\Admin',
-], function () { // custom admin routes
-    Route::crud('project', 'ProjectCrudController');
-    Route::crud('group', 'GroupCrudController');
-    Route::crud('task', 'TaskCrudController');
-    Route::crud('label', 'LabelCrudController');
-    Route::crud('label-task', 'LabelTaskCrudController');
-    Route::crud('checklist', 'ChecklistCrudController');
+], function () {
+   Route::group(['middleware' => ['permission:manage project']], function () {
+        Route::crud('project', 'ProjectCrudController');
+    });
+
+    Route::group(['middleware' => ['permission:manage groups']], function () {
+        Route::crud('group', 'GroupCrudController');
+    });
+
+    Route::group(['middleware' => ['permission:manage task']], function () {
+        Route::crud('task', 'TaskCrudController');
+    });
+
+    Route::group(['middleware' => ['permission:manage labels']], function () {
+        Route::crud('label', 'LabelCrudController');
+        Route::crud('label-task', 'LabelTaskCrudController');
+    });
+
+    Route::group(['middleware' => ['permission:manage checklists']], function () {
+        Route::crud('checklist', 'ChecklistCrudController');
+    });
+
+    Route::crud('role', RoleCrudController::class);
+    Route::crud('permission', PermissionCrudController::class);
+    Route::crud('user', UserCrudController::class);
+
+
 }); // this should be the absolute last line of this file
 
 /**

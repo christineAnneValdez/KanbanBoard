@@ -77,7 +77,6 @@
                 class="cursor-pointer rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm transition-all duration-200 select-none hover:bg-gray-200 sm:text-base dark:border-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
                 @click="openTask(element)"
               >
- 
                 <div class="truncate font-medium text-gray-800 dark:text-gray-100">
                   {{ element.name }}
                 </div>
@@ -200,4 +199,9 @@
     saveColumnTitle,
     updateTaskInBoard,
   } = useKanbanPage();
+  definePageMeta({
+    middleware: "auth",
+  });
+
+  const { user } = useAuth();
 </script>

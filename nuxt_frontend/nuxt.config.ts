@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     "@vueuse/nuxt",
     "@nuxt/icon",
     "@nuxt/fonts",
-    "vue-sonner/nuxt"
+    "vue-sonner/nuxt",
   ],
 
   components: [
@@ -53,7 +53,8 @@ export default defineNuxtConfig({
     serverBundle: "local",
   },
 
-  css: ["~/assets/css/tailwind.css", "~/assets/css/richtext.css"],
+  css: [ "~/assets/css/tailwind.css",
+  "~/assets/css/richtext.css"],
 
   
 

@@ -6,7 +6,19 @@ use App\Models\Project;
 use App\Models\Group;
 use App\Models\Label;
 use App\Models\Checklist;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
+use App\Http\Controllers\AuthController;
+
+Route::post("/login", [AuthController::class, "login"]);
+Route::post("/register", [AuthController::class, "register"]);
+Route::post("/logout", [AuthController::class, "logout"])->middleware("auth:sanctum");
+Route::get("/user", [AuthController::class, "user"])->middleware("auth:sanctum");
+Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
+    return $request->user();
+});
+
 
 Route::get('/tasks', function () {
     return [
@@ -16,8 +28,11 @@ Route::get('/tasks', function () {
     ];
 });
 
-Route::get('/projects', function () {
-    return Project::with('user')->get();
+Route::middleware('auth:sanctum')->get('/projects', function (Request $request) {
+    return $request->user()
+        ->projects()        // only projects assigned through project_user pivot
+        ->with('user')      // also show creator
+        ->get();
 });
 
 Route::get('/projects/{project}', function (Project $project) {

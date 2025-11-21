@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "aee764aeca8e1c8275a1ff4190ef8e70",
+    "content-hash": "ff79671f0aaae84af3387af89eb73c0f",
     "packages": [
         {
             "name": "backpack/basset",
@@ -173,6 +173,76 @@
                 "source": "https://github.com/Laravel-Backpack/CRUD/tree/6.8.7"
             },
             "time": "2025-10-10T15:17:46+00:00"
+        },
+        {
+            "name": "backpack/permissionmanager",
+            "version": "7.2.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Laravel-Backpack/PermissionManager.git",
+                "reference": "311d65b3378ac0610b29bf39d0d664ee5d761863"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Laravel-Backpack/PermissionManager/zipball/311d65b3378ac0610b29bf39d0d664ee5d761863",
+                "reference": "311d65b3378ac0610b29bf39d0d664ee5d761863",
+                "shasum": ""
+            },
+            "require": {
+                "backpack/crud": "^6.0",
+                "spatie/laravel-permission": "^6.4||^5.0||^4.0||^3.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Backpack\\PermissionManager\\PermissionManagerServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Backpack\\PermissionManager\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "proprietary"
+            ],
+            "authors": [
+                {
+                    "name": "Marius Constantin",
+                    "email": "marius@updivision.com",
+                    "homepage": "http://www.updivision.com",
+                    "role": "Lead Developer"
+                },
+                {
+                    "name": "Cristian Tabacitu",
+                    "email": "tabacitu@backpackforlaravel.com",
+                    "homepage": "https://backpackforlaravel.com",
+                    "role": "Chief Architect"
+                }
+            ],
+            "description": "Users and permissions management interface for Laravel 5 using Backpack CRUD.",
+            "homepage": "https://github.com/laravel-backpack/permissionmanager",
+            "keywords": [
+                "backpack",
+                "backpack permission",
+                "backpack roles",
+                "backpack user management",
+                "laravel backpack",
+                "manage permission",
+                "manage roles",
+                "manage users",
+                "tabacitu",
+                "updivision",
+                "users roles admin"
+            ],
+            "support": {
+                "issues": "https://github.com/Laravel-Backpack/PermissionManager/issues",
+                "source": "https://github.com/Laravel-Backpack/PermissionManager/tree/7.2.2"
+            },
+            "time": "2025-09-16T09:15:02+00:00"
         },
         {
             "name": "backpack/theme-coreuiv4",
@@ -1858,6 +1928,70 @@
                 "source": "https://github.com/laravel/prompts/tree/v0.3.7"
             },
             "time": "2025-09-19T13:47:56+00:00"
+        },
+        {
+            "name": "laravel/sanctum",
+            "version": "v4.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/laravel/sanctum.git",
+                "reference": "fd6df4f79f48a72992e8d29a9c0ee25422a0d677"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/laravel/sanctum/zipball/fd6df4f79f48a72992e8d29a9c0ee25422a0d677",
+                "reference": "fd6df4f79f48a72992e8d29a9c0ee25422a0d677",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "illuminate/console": "^11.0|^12.0",
+                "illuminate/contracts": "^11.0|^12.0",
+                "illuminate/database": "^11.0|^12.0",
+                "illuminate/support": "^11.0|^12.0",
+                "php": "^8.2",
+                "symfony/console": "^7.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.6",
+                "orchestra/testbench": "^9.0|^10.0",
+                "phpstan/phpstan": "^1.10",
+                "phpunit/phpunit": "^11.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Laravel\\Sanctum\\SanctumServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Laravel\\Sanctum\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Taylor Otwell",
+                    "email": "taylor@laravel.com"
+                }
+            ],
+            "description": "Laravel Sanctum provides a featherweight authentication system for SPAs and simple APIs.",
+            "keywords": [
+                "auth",
+                "laravel",
+                "sanctum"
+            ],
+            "support": {
+                "issues": "https://github.com/laravel/sanctum/issues",
+                "source": "https://github.com/laravel/sanctum"
+            },
+            "time": "2025-07-09T19:45:24+00:00"
         },
         {
             "name": "laravel/serializable-closure",
@@ -3923,6 +4057,89 @@
                 "source": "https://github.com/ramsey/uuid/tree/4.9.1"
             },
             "time": "2025-09-04T20:59:21+00:00"
+        },
+        {
+            "name": "spatie/laravel-permission",
+            "version": "6.23.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-permission.git",
+                "reference": "9e41247bd512b1e6c229afbc1eb528f7565ae3bb"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-permission/zipball/9e41247bd512b1e6c229afbc1eb528f7565ae3bb",
+                "reference": "9e41247bd512b1e6c229afbc1eb528f7565ae3bb",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/auth": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/container": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/contracts": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "illuminate/database": "^8.12|^9.0|^10.0|^11.0|^12.0",
+                "php": "^8.0"
+            },
+            "require-dev": {
+                "laravel/passport": "^11.0|^12.0",
+                "laravel/pint": "^1.0",
+                "orchestra/testbench": "^6.23|^7.0|^8.0|^9.0|^10.0",
+                "phpunit/phpunit": "^9.4|^10.1|^11.5"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Spatie\\Permission\\PermissionServiceProvider"
+                    ]
+                },
+                "branch-alias": {
+                    "dev-main": "6.x-dev",
+                    "dev-master": "6.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Spatie\\Permission\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Freek Van der Herten",
+                    "email": "freek@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Permission handling for Laravel 8.0 and up",
+            "homepage": "https://github.com/spatie/laravel-permission",
+            "keywords": [
+                "acl",
+                "laravel",
+                "permission",
+                "permissions",
+                "rbac",
+                "roles",
+                "security",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-permission/issues",
+                "source": "https://github.com/spatie/laravel-permission/tree/6.23.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/spatie",
+                    "type": "github"
+                }
+            ],
+            "time": "2025-11-03T20:16:13+00:00"
         },
         {
             "name": "symfony/clock",

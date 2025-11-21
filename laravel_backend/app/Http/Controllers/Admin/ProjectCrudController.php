@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Requests\ProjectRequest;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use App\Models\User;
 
 /**
  * Class ProjectCrudController
@@ -48,10 +49,15 @@ class ProjectCrudController extends CrudController
             'model' => "App\Models\User",
             'label' => 'User'
         ]);
-        /**
-         * Columns can be defined using the fluent syntax:
-         * - CRUD::column('price')->type('number');
-         */
+
+        CRUD::addColumn([
+            'name'      => 'members',
+            'type'      => 'select_multiple',   // <= changed
+            'label'     => 'Members',
+            'entity'    => 'members',
+            'attribute' => 'name',
+            'separator' => ', '
+        ]);
     }
 
     /**
@@ -77,10 +83,23 @@ class ProjectCrudController extends CrudController
             'label' => 'Assigned User'
         ]);
 
-        /**
-         * Fields can be defined using the fluent syntax:
-         * - CRUD::field('price')->type('number');
-         */
+        CRUD::addField([
+            'name'        => 'members',
+            'type'        => 'checklist',
+            'label'       => 'Additional members',
+            'entity'      => 'members',
+            'attribute'   => 'name',
+            'pivot'       => true,
+            'allows_null' => true,
+            'options'     => function () {
+
+        $ownerId = old('user_id')
+                 ?? $this->crud->getCurrentEntry()->user_id
+                 ?? request()->input('user_id');
+
+        return User::whereKeyNot($ownerId)->pluck('name', 'id');
+    },
+        ]);
     }
 
     protected function setupShowOperation()
@@ -94,6 +113,15 @@ class ProjectCrudController extends CrudController
             'entity' => 'user',
             'attribute' => 'name',
             'model' => "App\Models\User",
+        ]);
+
+         CRUD::addColumn([
+            'name'      => 'members',
+            'type'      => 'select_multiple',
+            'label'     => 'Members',
+            'entity'    => 'members',
+            'attribute' => 'name',
+            'separator' => ', '
         ]);
 
          CRUD::column('created_at')
