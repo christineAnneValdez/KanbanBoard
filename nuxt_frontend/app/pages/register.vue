@@ -1,36 +1,38 @@
 <template>
-  <div class="flex min-h-screen items-center justify-center px-4">
-    <div class="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-8 shadow-xl">
-      <h2 class="mb-6 text-center text-2xl font-bold text-gray-800">Create Account</h2>
+  <div class="flex min-h-screen items-center justify-center bg-gray-50 px-4 dark:bg-gray-950">
+    <div
+      class="w-full max-w-sm rounded-2xl border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900"
+    >
+      <h2 class="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-gray-100">Create Account</h2>
 
       <form @submit.prevent="submit" class="space-y-4">
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Name</label>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
           <input
             v-model="name"
             type="text"
             placeholder="Your full name"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-900"
           />
         </div>
 
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Email</label>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
           <input
             v-model="email"
             type="email"
             placeholder="Your email address"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-900"
           />
         </div>
 
         <div>
-          <label class="mb-1 block text-sm font-medium text-gray-700">Password</label>
+          <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
           <input
             v-model="password"
             type="password"
             placeholder="Create a password"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus:ring-blue-900"
           />
         </div>
 
@@ -41,9 +43,9 @@
         </button>
       </form>
 
-      <p class="mt-5 text-center text-sm text-gray-600">
+      <p class="mt-5 text-center text-sm text-gray-600 dark:text-gray-300">
         Already have an account?
-        <NuxtLink to="/login" class="font-medium text-blue-600 hover:underline"> Login </NuxtLink>
+        <NuxtLink to="/login" class="font-medium text-blue-600 hover:underline dark:text-blue-400">Login</NuxtLink>
       </p>
     </div>
   </div>
@@ -68,9 +70,7 @@
   const submit = async () => {
     try {
       await register(name.value, email.value, password.value);
-
-      toast.success("Registration successful! 🎉");
-
+      toast.success("Registration successful.");
       navigateTo("/login");
     } catch (error) {
       toast.error("Registration failed. Please try again.");

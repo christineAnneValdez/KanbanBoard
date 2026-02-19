@@ -5,6 +5,28 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   future: { compatibilityVersion: 4 },
+  experimental: {
+    inlineSSRStyles: true,
+  },
+  app: {
+    head: {
+      htmlAttrs: {
+        class: "nuxt-preload",
+      },
+      style: [
+        {
+          children:
+            "html,body{background:#f9fafb;}@media (prefers-color-scheme: dark){html,body{background:#030712;}}html.nuxt-preload #__nuxt{opacity:0;visibility:hidden;}html.nuxt-ready #__nuxt{opacity:1;visibility:visible;transition:opacity .15s ease;}",
+        },
+      ],
+      script: [
+        {
+          children:
+            "(function(){function r(){var d=document.documentElement;d.classList.remove('nuxt-preload');d.classList.add('nuxt-ready')}if(document.readyState==='complete'){r()}else{window.addEventListener('load',r,{once:true});setTimeout(r,4000)}})();",
+        },
+      ],
+    },
+  },
 
   modules: [
      "@nuxt/ui",
@@ -38,6 +60,9 @@ export default defineNuxtConfig({
 
   colorMode: {
     storageKey: "nuxt_frontend-color-mode",
+    storage: "cookie",
+    fallback: "light",
+    preference: "system",
     classSuffix: "",
   },
 
