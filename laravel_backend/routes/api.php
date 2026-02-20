@@ -18,6 +18,8 @@ Route::get("/user", [AuthController::class, "user"])->middleware("auth:sanctum")
 Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
     return $request->user();
 });
+Route::patch('/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
+Route::patch('/profile/password', [AuthController::class, 'updatePassword'])->middleware('auth:sanctum');
 
 
 Route::get('/tasks', function () {
