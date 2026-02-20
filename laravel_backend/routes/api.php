@@ -45,7 +45,7 @@ Route::get('/projects/{project}/kanban', function (Project $project) {
         'groups' => Group::with([
             'tasks' => function ($query) use ($project) {
                 $query->where('project_id', $project->id)
-                      ->with('labels');
+                      ->with(['labels', 'assignee:id,name,email']);
             }
         ])
         ->orderBy('sort')
@@ -71,11 +71,14 @@ Route::post('/tasks', function (Request $request) {
         'group_id' => 'required|integer|exists:groups,id',
         'project_id' => 'required|integer|exists:projects,id',
         'sort' => 'nullable|integer',
+        'assigned_user_id' => 'nullable|integer|exists:users,id',
+        'start_date' => 'nullable|date',
+        'due_date' => 'nullable|date|after_or_equal:start_date',
     ]);
 
     $task = Task::create($validated);
 
-    return response()->json($task, 201);
+    return response()->json($task->load('assignee:id,name,email'), 201);
 });
 
 Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task $task) {
@@ -84,11 +87,14 @@ Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task
         'description' => 'nullable|string|max:1000',
         'group_id' => 'nullable|integer|exists:groups,id',
         'sort' => 'nullable|integer',
+        'assigned_user_id' => 'nullable|integer|exists:users,id',
+        'start_date' => 'nullable|date',
+        'due_date' => 'nullable|date|after_or_equal:start_date',
     ]);
 
     $task->update($validated);
 
-    return response()->json($task);
+    return response()->json($task->load('assignee:id,name,email'));
 });
 
 
@@ -118,6 +124,65 @@ Route::post('/tasks/{task}/labels', function (Request $request, Task $task) {
 Route::delete('/tasks/{task}/labels/{label}', function (Task $task, Label $label) {
     $task->labels()->detach($label->id);
     return $task->labels;
+});
+
+Route::get('/tasks/{task}/comments', function (Task $task) {
+    return $task->comments()
+        ->whereNull('parent_id')
+        ->with([
+            'user:id,name',
+            'replies.user:id,name',
+        ])
+        ->latest()
+        ->get();
+});
+
+Route::post('/tasks/{task}/comments', function (Request $request, Task $task) {
+    $validated = $request->validate([
+        'content' => 'required|string|max:2000',
+        'author_name' => 'nullable|string|max:255',
+        'parent_id' => 'nullable|integer|exists:comments,id',
+    ]);
+
+    $authUser = $request->user();
+    $parentId = $validated['parent_id'] ?? null;
+
+    if ($parentId) {
+        $belongsToTask = $task->comments()->where('id', $parentId)->exists();
+        if (! $belongsToTask) {
+            return response()->json(['message' => 'Invalid parent comment for this task'], 422);
+        }
+    }
+
+    $comment = $task->comments()->create([
+        'user_id' => $authUser?->id,
+        'parent_id' => $parentId,
+        'author_name' => $authUser?->name ?? ($validated['author_name'] ?? 'User'),
+        'content' => $validated['content'],
+    ]);
+
+    return response()->json($comment->load('user:id,name'), 201);
+});
+
+Route::get('/tasks/{task}/mentionable-users', function (Task $task) {
+    $project = $task->project()->with(['members:id,name,email', 'user:id,name,email'])->first();
+
+    if (! $project) {
+        return [];
+    }
+
+    $users = collect([$project->user])
+        ->merge($project->members)
+        ->filter()
+        ->unique('id')
+        ->values()
+        ->map(fn($user) => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
+
+    return $users;
 });
 
 

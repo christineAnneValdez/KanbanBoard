@@ -39,10 +39,7 @@ export function useKanbanPage() {
     if (index !== -1) {
       column.tasks[index] = {
         ...column.tasks[index],
-        name: updatedTask.name,
-        description: updatedTask.description,
-        labels: updatedTask.labels,
-        status: updatedTask.status,
+        ...updatedTask,
       }
     }
   }

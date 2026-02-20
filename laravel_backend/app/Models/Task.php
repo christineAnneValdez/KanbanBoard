@@ -20,6 +20,9 @@ class Task extends Model
         'group_id',
         'sort',
         'description',
+        'assigned_user_id',
+        'start_date',
+        'due_date',
     ];
 
      public function getSortableQuery()
@@ -47,6 +50,11 @@ class Task extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
     public function labels(): BelongsToMany
     {
         return $this->belongsToMany(Label::class);
@@ -55,6 +63,11 @@ class Task extends Model
     public function checklists()
     {
     return $this->hasMany(Checklist::class)->orderBy('sort');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class)->latest();
     }
 
 }

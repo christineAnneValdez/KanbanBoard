@@ -20,8 +20,8 @@ export function useTaskModal() {
     onUpdatedCallback = callback;
   };
 
-  const updateDescription = async (newDescription) => {
-    if (!task.value) return;
+  const updateTaskFields = async (fields) => {
+    if (!task.value) return null;
 
     try {
       const response = await fetch(`http://127.0.0.1:8000/api/tasks/${task.value.id}`, {
@@ -31,8 +31,8 @@ export function useTaskModal() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          description: newDescription,
           group_id: task.value.group_id,
+          ...fields,
         }),
       });
 
@@ -47,11 +47,16 @@ export function useTaskModal() {
 
       if (onUpdatedCallback) onUpdatedCallback(data);
 
-      console.log("✅ Task updated successfully:", data);
+      return data;
     } catch (error) {
-      console.error("❌ Error updating description:", error);
-      alert("Failed to save description — check console for details.");
+      console.error("Error updating task:", error);
+      alert("Failed to save task updates.");
+      return null;
     }
+  };
+
+  const updateDescription = async (newDescription) => {
+    return updateTaskFields({ description: newDescription });
   };
 
   return {
@@ -59,7 +64,8 @@ export function useTaskModal() {
     task,
     open,
     close,
+    updateTaskFields,
     updateDescription,
-    onUpdated, 
+    onUpdated,
   };
 }
