@@ -15,6 +15,12 @@
           >
             To Do
           </span>
+          <span
+            v-if="task.ticket_no"
+            class="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold tracking-wide text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+          >
+            {{ task.ticket_no }}
+          </span>
           <h2 class="text-xl font-semibold text-slate-900 dark:text-slate-100">
             {{ task.name || "Untitled Task" }}
           </h2>

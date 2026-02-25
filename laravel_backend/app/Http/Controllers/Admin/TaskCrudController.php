@@ -40,6 +40,7 @@ class TaskCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::setFromDb(); // set columns from db columns.
+        CRUD::column('ticket_no')->label('Ticket');
         CRUD::column('name')->label('Task Title');
         CRUD::column('description')->label('Description');
         CRUD::column('sort')->label('Sort Order');
@@ -128,6 +129,7 @@ class TaskCrudController extends CrudController
 
     protected function setupShowOperation()
     {
+        CRUD::column('ticket_no')->label('Ticket');
         CRUD::column('name')->label('Task Title');
         CRUD::column('description')->label('Description');
         CRUD::column('sort')->label('Sort Order');

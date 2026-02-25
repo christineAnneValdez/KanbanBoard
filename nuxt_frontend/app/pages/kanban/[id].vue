@@ -1,6 +1,6 @@
 <template>
   <div
-    class="flex flex-col overflow-hidden bg-gray-50 p-4 text-gray-900 transition-colors duration-300 select-none dark:bg-gray-900 dark:text-gray-100"
+    class="flex h-full min-h-0 flex-col overflow-hidden bg-gray-50 p-4 text-gray-900 transition-colors duration-300 select-none dark:bg-gray-900 dark:text-gray-100"
   >
     <h1 v-if="projectName" class="mb-6 text-xl font-bold sm:mb-8 sm:text-2xl">
       {{ projectName }}
@@ -14,19 +14,22 @@
       </div>
     </div>
 
-    <draggable
+    <div
       v-if="columns.length"
-      ref="board"
-      v-model="columns"
-      group="columns"
-      direction="horizontal"
-      class="flex snap-x flex-row items-start gap-6 overflow-x-auto scroll-smooth pb-2"
-      item-key="id"
-      animation="300"
-      ghost-class="opacity-50"
-      @change="onColumnDrop"
+      class="min-h-0 flex-1 overflow-x-auto overflow-y-hidden pb-2"
     >
-      <template #item="{ element: column, index }">
+      <draggable
+        ref="board"
+        v-model="columns"
+        group="columns"
+        direction="horizontal"
+        class="flex w-max snap-x flex-row items-start gap-6 scroll-smooth"
+        item-key="id"
+        animation="300"
+        ghost-class="opacity-50"
+        @change="onColumnDrop"
+      >
+      <template #item="{ element: column }">
         <div
           class="flex w-[85%] flex-shrink-0 snap-start flex-col rounded-xl bg-white p-4 shadow-md sm:w-80 dark:bg-gray-800"
         >
@@ -77,6 +80,12 @@
                 class="cursor-pointer rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm transition-all duration-200 select-none hover:bg-gray-200 sm:text-base dark:border-gray-700 dark:bg-gray-700 dark:hover:bg-gray-600"
                 @click="openTask(element)"
               >
+                <div
+                  v-if="element.ticket_no"
+                  class="mb-1 inline-flex w-fit rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300"
+                >
+                  {{ element.ticket_no }}
+                </div>
                 <div class="truncate font-medium text-gray-800 dark:text-gray-100">
                   {{ element.name }}
                 </div>
@@ -168,7 +177,8 @@
           </button>
         </div>
       </template>
-    </draggable>
+      </draggable>
+    </div>
   </div>
   <TaskModal @task-updated="updateTaskInBoard" />
 </template>
