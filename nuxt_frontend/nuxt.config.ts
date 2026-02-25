@@ -86,7 +86,7 @@ export default defineNuxtConfig({
   nitro: {
   devProxy: {
     '/api': {
-      target: 'http://127.0.0.1:8000', // Laravel
+      target: process.env.NUXT_DEV_PROXY_TARGET || 'http://127.0.0.1:8000',
       changeOrigin: true,
       prependPath: true,
     },
@@ -95,7 +95,7 @@ export default defineNuxtConfig({
 
 runtimeConfig: {
   public: {
-    apiBase: '/api',
+    apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
   },
 },
 });

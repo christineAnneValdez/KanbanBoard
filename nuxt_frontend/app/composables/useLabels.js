@@ -1,10 +1,11 @@
 import { ref } from 'vue'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
-
 const cachedLabels = ref([])
 
 export function useLabels() {
+  const runtimeConfig = useRuntimeConfig()
+  const API_BASE = runtimeConfig.public.apiBase || import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
+
   const fetchLabels = async () => {
     if (cachedLabels.value.length) {
       return cachedLabels.value

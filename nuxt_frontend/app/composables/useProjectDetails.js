@@ -2,10 +2,10 @@
 import { ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
-
 export function useProjectDetails() {
   const { token } = useAuth()
+  const runtimeConfig = useRuntimeConfig()
+  const API_BASE = runtimeConfig.public.apiBase || import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
   const projectName = ref('')
   const error = ref(null)
 

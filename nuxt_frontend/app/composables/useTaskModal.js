@@ -3,10 +3,11 @@ import { useAuth } from "@/composables/useAuth";
 
 const isOpen = ref(false);
 const task = ref(null);
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
 export function useTaskModal() {
   const { token } = useAuth();
+  const runtimeConfig = useRuntimeConfig();
+  const API_BASE = runtimeConfig.public.apiBase || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
   let onUpdatedCallback = null;
 
   const open = (taskData) => {

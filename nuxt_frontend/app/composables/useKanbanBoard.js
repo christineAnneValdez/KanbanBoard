@@ -1,10 +1,10 @@
 import { ref, nextTick } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
-
 export function useKanbanBoard(projectId) {
   const { token } = useAuth()
+  const runtimeConfig = useRuntimeConfig()
+  const API_BASE = runtimeConfig.public.apiBase || import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
   const columns = ref([])
   const dragging = ref(false)
   const addingColumn = ref(false)
