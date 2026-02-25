@@ -2,6 +2,9 @@
   "name": "nuxt_frontend",
   "type": "module",
   "private": false,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
