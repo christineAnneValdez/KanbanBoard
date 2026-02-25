@@ -21,7 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-         // Load your API routes manually
+
+    if (app()->environment('production')) {
+            URL::forceScheme('https');
+        }
+
     Route::middleware('api')
          ->prefix('api')
          ->group(base_path('routes/api.php'));
