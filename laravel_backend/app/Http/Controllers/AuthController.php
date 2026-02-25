@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
@@ -67,13 +68,40 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+            'name' => ['nullable', 'string', 'max:255'],
+            'profile_photo' => ['nullable', 'image', 'max:2048'],
+            'remove_profile_photo' => ['nullable', 'boolean'],
         ]);
 
         $user = $request->user();
-        $user->update([
-            'name' => $validated['name'],
-        ]);
+        $resolvedName = trim((string) ($validated['name'] ?? $user->name));
+        if ($resolvedName === '') {
+            return response()->json([
+                'message' => 'The name field is required.',
+                'errors' => [
+                    'name' => ['The name field is required.'],
+                ],
+            ], 422);
+        }
+
+        $updates = [
+            'name' => $resolvedName,
+        ];
+
+        if (! empty($validated['remove_profile_photo']) && $user->profile_photo_path) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+            $updates['profile_photo_path'] = null;
+        }
+
+        if ($request->hasFile('profile_photo')) {
+            if ($user->profile_photo_path) {
+                Storage::disk('public')->delete($user->profile_photo_path);
+            }
+
+            $updates['profile_photo_path'] = $request->file('profile_photo')->store('profile-photos', 'public');
+        }
+
+        $user->update($updates);
 
         return response()->json([
             'user' => $user->fresh(),

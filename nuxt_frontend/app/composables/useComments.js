@@ -5,6 +5,7 @@ import { ref } from "vue";
 const normalizeComment = (comment) => ({
   id: comment.id,
   content: comment.content,
+  userId: comment.user_id || comment.user?.id || null,
   parentId: comment.parent_id || null,
   authorName: comment.user?.name || comment.author_name || "User",
   createdAt: comment.created_at || comment.createdAt,
@@ -82,11 +83,44 @@ export function useComments() {
     }
   };
 
+  const updateCommentForTask = async (taskId, commentId, content) => {
+    const text = content?.trim();
+    if (!taskId || !commentId || !text) return;
+
+    try {
+      await api.patch(
+        `/tasks/${taskId}/comments/${commentId}`,
+        { content: text },
+        { headers: authHeaders() }
+      );
+      await loadCommentsForTask(taskId);
+    } catch (error) {
+      console.error("Failed to update comment:", error);
+      throw error;
+    }
+  };
+
+  const deleteCommentForTask = async (taskId, commentId) => {
+    if (!taskId || !commentId) return;
+
+    try {
+      await api.delete(`/tasks/${taskId}/comments/${commentId}`, {
+        headers: authHeaders(),
+      });
+      await loadCommentsForTask(taskId);
+    } catch (error) {
+      console.error("Failed to delete comment:", error);
+      throw error;
+    }
+  };
+
   return {
     comments,
     mentionableUsers,
     loadCommentsForTask,
     loadMentionableUsers,
     addCommentForTask,
+    updateCommentForTask,
+    deleteCommentForTask,
   };
 }

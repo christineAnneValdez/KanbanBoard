@@ -61,12 +61,22 @@ export function useTaskModalPage(emit) {
   // ---------------------
   // 💬 Comments
   // ---------------------
-  const { comments, mentionableUsers, loadCommentsForTask, loadMentionableUsers, addCommentForTask } =
-    useComments();
+  const {
+    comments,
+    mentionableUsers,
+    loadCommentsForTask,
+    loadMentionableUsers,
+    addCommentForTask,
+    updateCommentForTask,
+    deleteCommentForTask,
+  } = useComments();
   const commentInputHtml = ref("");
   const isCommentComposerOpen = ref(false);
   const activeReplyCommentId = ref(null);
   const replyDraftByCommentId = ref({});
+  const replyTargetByCommentId = ref({});
+  const editingCommentId = ref(null);
+  const editingCommentHtmlById = ref({});
 
   const currentUserName = computed(() => user.value?.name || "User");
 
@@ -80,23 +90,6 @@ export function useTaskModalPage(emit) {
     return !normalized;
   };
 
-  const appendMention = (target, mentionName) => {
-    if (!mentionName) return target;
-
-    const mentionToken = `@${mentionName} `;
-    const base = target || "<p><br></p>";
-
-    if (base === "<p><br></p>") {
-      return `<p>${mentionToken}</p>`;
-    }
-
-    return `${base}<p>${mentionToken}</p>`;
-  };
-
-  const insertMentionInComment = (mentionName) => {
-    commentInputHtml.value = appendMention(commentInputHtml.value, mentionName);
-  };
-
   const openCommentComposer = () => {
     isCommentComposerOpen.value = true;
   };
@@ -104,13 +97,6 @@ export function useTaskModalPage(emit) {
   const cancelCommentComposer = () => {
     isCommentComposerOpen.value = false;
     commentInputHtml.value = "";
-  };
-
-  const insertMentionInReply = (commentId, mentionName) => {
-    replyDraftByCommentId.value[commentId] = appendMention(
-      replyDraftByCommentId.value[commentId],
-      mentionName
-    );
   };
 
   const submitComment = async () => {
@@ -126,15 +112,21 @@ export function useTaskModalPage(emit) {
     }
   };
 
-  const startReply = (commentId) => {
+  const startReply = (commentId, target = null) => {
     activeReplyCommentId.value = commentId;
-    replyDraftByCommentId.value[commentId] = replyDraftByCommentId.value[commentId] || "<p><br></p>";
+    replyTargetByCommentId.value[commentId] = target;
+
+    const currentDraft = replyDraftByCommentId.value[commentId] || "";
+    if (!isHtmlContentEmpty(currentDraft)) return;
+
+    replyDraftByCommentId.value[commentId] = "<p><br></p>";
   };
 
   const cancelReply = (commentId) => {
     if (activeReplyCommentId.value === commentId) {
       activeReplyCommentId.value = null;
     }
+    delete replyTargetByCommentId.value[commentId];
   };
 
   const submitReply = async (parentCommentId) => {
@@ -146,9 +138,58 @@ export function useTaskModalPage(emit) {
     try {
       await addCommentForTask(task.value.id, replyContent, currentUserName.value, parentCommentId);
       replyDraftByCommentId.value[parentCommentId] = "<p><br></p>";
+      delete replyTargetByCommentId.value[parentCommentId];
       activeReplyCommentId.value = null;
     } catch (error) {
       console.error("Failed to post reply:", error);
+    }
+  };
+
+  const canModifyComment = (comment) => {
+    const currentUserId = user.value?.id ? Number(user.value.id) : null;
+    const commentUserId = comment?.userId ? Number(comment.userId) : null;
+    if (currentUserId && commentUserId && currentUserId === commentUserId) return true;
+
+    const currentName = (user.value?.name || "").trim().toLowerCase();
+    const commentName = (comment?.authorName || "").trim().toLowerCase();
+    return !!currentName && !!commentName && currentName === commentName;
+  };
+
+  const startEditComment = (comment) => {
+    if (!comment?.id) return;
+    editingCommentId.value = comment.id;
+    editingCommentHtmlById.value[comment.id] = comment.content || "<p><br></p>";
+  };
+
+  const cancelEditComment = (commentId) => {
+    if (editingCommentId.value === commentId) {
+      editingCommentId.value = null;
+    }
+  };
+
+  const saveEditComment = async (commentId) => {
+    if (!task.value?.id) return;
+    const content = editingCommentHtmlById.value[commentId];
+    if (isHtmlContentEmpty(content)) return;
+
+    try {
+      await updateCommentForTask(task.value.id, commentId, content);
+      editingCommentId.value = null;
+    } catch (error) {
+      console.error("Failed to edit comment:", error);
+    }
+  };
+
+  const removeComment = async (commentId) => {
+    if (!task.value?.id) return;
+
+    try {
+      await deleteCommentForTask(task.value.id, commentId);
+      if (editingCommentId.value === commentId) {
+        editingCommentId.value = null;
+      }
+    } catch (error) {
+      console.error("Failed to delete comment:", error);
     }
   };
 
@@ -210,6 +251,9 @@ export function useTaskModalPage(emit) {
       isCommentComposerOpen.value = false;
       activeReplyCommentId.value = null;
       replyDraftByCommentId.value = {};
+      replyTargetByCommentId.value = {};
+      editingCommentId.value = null;
+      editingCommentHtmlById.value = {};
       return;
     }
 
@@ -313,6 +357,9 @@ export function useTaskModalPage(emit) {
     isCommentComposerOpen,
     activeReplyCommentId,
     replyDraftByCommentId,
+    replyTargetByCommentId,
+    editingCommentId,
+    editingCommentHtmlById,
     currentUserName,
     submitComment,
     openCommentComposer,
@@ -320,10 +367,13 @@ export function useTaskModalPage(emit) {
     startReply,
     cancelReply,
     submitReply,
-    insertMentionInComment,
-    insertMentionInReply,
     isHtmlContentEmpty,
     formatCommentDate,
+    canModifyComment,
+    startEditComment,
+    cancelEditComment,
+    saveEditComment,
+    removeComment,
 
     // quill
     toolbarOptions,

@@ -7,7 +7,7 @@
 
     <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 class="text-lg font-semibold text-slate-900">Profile</h2>
-      <p class="mt-1 text-sm text-slate-500">Update your display name.</p>
+      <p class="mt-1 text-sm text-slate-500">Update your display name and profile picture.</p>
 
       <div
         v-if="profileSuccess"
@@ -23,6 +23,42 @@
       </div>
 
       <form @submit.prevent="updateName" class="mt-4 space-y-4">
+        <div class="flex items-center gap-4">
+          <div
+            class="inline-flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-slate-200 text-sm font-semibold text-slate-700"
+          >
+            <img
+              v-if="profilePhotoPreview"
+              :src="profilePhotoPreview"
+              alt="Profile picture preview"
+              class="h-full w-full object-cover"
+            />
+            <span v-else>{{ userInitials }}</span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <label
+              class="cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Upload Photo
+              <input
+                type="file"
+                accept="image/*"
+                class="hidden"
+                @change="onProfilePhotoSelected"
+              />
+            </label>
+            <button
+              v-if="profilePhotoPreview"
+              type="button"
+              @click="removeProfilePhoto"
+              class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Remove Photo
+            </button>
+          </div>
+        </div>
+
         <div>
           <label class="mb-1 block text-sm font-medium text-slate-700">Name</label>
           <input
@@ -37,8 +73,11 @@
           :disabled="isUpdatingName"
           class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {{ isUpdatingName ? "Saving..." : "Save Name" }}
+          {{ isUpdatingName ? "Saving..." : "Save Profile Changes" }}
         </button>
+        <p class="text-xs text-slate-500">
+          Click <strong>Save Profile Changes</strong> after changing name or photo.
+        </p>
       </form>
     </section>
 
@@ -114,6 +153,9 @@
   const { api } = useAxio();
 
   const name = ref(user.value?.name || "");
+  const profilePhotoFile = ref(null);
+  const profilePhotoPreview = ref(user.value?.profile_photo_url || "");
+  const shouldRemoveProfilePhoto = ref(false);
   const currentPassword = ref("");
   const newPassword = ref("");
   const newPasswordConfirmation = ref("");
@@ -131,6 +173,15 @@
     (nextName) => {
       if (typeof nextName === "string") {
         name.value = nextName;
+      }
+    }
+  );
+
+  watch(
+    () => user.value?.profile_photo_url,
+    (nextUrl) => {
+      if (!profilePhotoFile.value) {
+        profilePhotoPreview.value = nextUrl || "";
       }
     }
   );
@@ -153,11 +204,33 @@
     return error?.response?.data?.message || fallbackMessage;
   };
 
+  const userInitials = computed(() => {
+    const source = name.value || user.value?.name || "U";
+    const parts = source.trim().split(/\s+/).slice(0, 2);
+    return parts.map((part) => part[0]?.toUpperCase() || "").join("") || "U";
+  });
+
+  const onProfilePhotoSelected = async (event) => {
+    const file = event?.target?.files?.[0];
+    if (!file) return;
+
+    profilePhotoFile.value = file;
+    shouldRemoveProfilePhoto.value = false;
+    profilePhotoPreview.value = URL.createObjectURL(file);
+    await updateName();
+  };
+
+  const removeProfilePhoto = () => {
+    profilePhotoFile.value = null;
+    shouldRemoveProfilePhoto.value = true;
+    profilePhotoPreview.value = "";
+  };
+
   const updateName = async () => {
     profileError.value = "";
     profileSuccess.value = "";
 
-    const trimmedName = name.value.trim();
+    const trimmedName = name.value.trim() || (user.value?.name || "").trim();
     if (!trimmedName) {
       profileError.value = "Name is required.";
       return;
@@ -166,11 +239,23 @@
     isUpdatingName.value = true;
 
     try {
-      const { data } = await api.patch(
-        "/profile",
-        { name: trimmedName },
-        { headers: authHeaders.value }
-      );
+      const formData = new FormData();
+      formData.append("name", trimmedName);
+
+      if (profilePhotoFile.value) {
+        formData.append("profile_photo", profilePhotoFile.value);
+      }
+
+      if (shouldRemoveProfilePhoto.value) {
+        formData.append("remove_profile_photo", "1");
+      }
+
+      const { data } = await api.post("/profile", formData, {
+        headers: {
+          ...authHeaders.value,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       if (data?.user) {
         user.value = data.user;
@@ -178,7 +263,9 @@
         user.value = { ...user.value, name: trimmedName };
       }
 
-      profileSuccess.value = "Name updated successfully.";
+      profilePhotoFile.value = null;
+      shouldRemoveProfilePhoto.value = false;
+      profileSuccess.value = "Profile updated successfully.";
     } catch (error) {
       profileError.value = extractErrorMessage(error, "Failed to update name.");
     } finally {

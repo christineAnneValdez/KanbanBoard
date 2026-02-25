@@ -86,8 +86,23 @@
                 >
                   {{ element.ticket_no }}
                 </div>
-                <div class="truncate font-medium text-gray-800 dark:text-gray-100">
-                  {{ element.name }}
+                <div class="flex items-center justify-between gap-2">
+                  <div class="truncate font-medium text-gray-800 dark:text-gray-100">
+                    {{ element.name }}
+                  </div>
+                  <span
+                    v-if="element.assignee"
+                    class="inline-flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-slate-300 text-[10px] font-semibold text-slate-800 dark:bg-slate-600 dark:text-slate-100"
+                    :title="element.assignee.name"
+                  >
+                    <img
+                      v-if="element.assignee.profile_photo_url"
+                      :src="element.assignee.profile_photo_url"
+                      :alt="element.assignee.name"
+                      class="h-full w-full rounded-full object-cover"
+                    />
+                    <span v-else>{{ getInitials(element.assignee.name) }}</span>
+                  </span>
                 </div>
 
                 <div
@@ -214,4 +229,10 @@
   });
 
   const { user } = useAuth();
+
+  const getInitials = (name) => {
+    if (!name) return "U";
+    const parts = name.trim().split(/\s+/).slice(0, 2);
+    return parts.map((part) => part[0]?.toUpperCase() || "").join("");
+  };
 </script>

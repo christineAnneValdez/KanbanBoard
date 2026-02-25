@@ -7,6 +7,7 @@ use App\Models\Group;
 use App\Models\Label;
 use App\Models\Checklist;
 use App\Models\User;
+use App\Models\Comment;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
@@ -19,6 +20,7 @@ Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
     return $request->user();
 });
 Route::patch('/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
+Route::post('/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 Route::patch('/profile/password', [AuthController::class, 'updatePassword'])->middleware('auth:sanctum');
 
 
@@ -47,7 +49,7 @@ Route::get('/projects/{project}/kanban', function (Project $project) {
         'groups' => Group::with([
             'tasks' => function ($query) use ($project) {
                 $query->where('project_id', $project->id)
-                      ->with(['labels', 'assignee:id,name,email']);
+                      ->with(['labels', 'assignee:id,name,email,profile_photo_path']);
             }
         ])
         ->orderBy('sort')
@@ -80,7 +82,7 @@ Route::post('/tasks', function (Request $request) {
 
     $task = Task::create($validated);
 
-    return response()->json($task->load('assignee:id,name,email'), 201);
+    return response()->json($task->load('assignee:id,name,email,profile_photo_path'), 201);
 });
 
 Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task $task) {
@@ -96,7 +98,7 @@ Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task
 
     $task->update($validated);
 
-    return response()->json($task->load('assignee:id,name,email'));
+    return response()->json($task->load('assignee:id,name,email,profile_photo_path'));
 });
 
 
@@ -166,8 +168,58 @@ Route::post('/tasks/{task}/comments', function (Request $request, Task $task) {
     return response()->json($comment->load('user:id,name'), 201);
 });
 
+Route::patch('/tasks/{task}/comments/{comment}', function (Request $request, Task $task, Comment $comment) {
+    if ((int) $comment->task_id !== (int) $task->id) {
+        return response()->json(['message' => 'Comment does not belong to this task'], 422);
+    }
+
+    $authUser = $request->user();
+    $isAdmin = $authUser && method_exists($authUser, 'hasRole') && $authUser->hasRole('admin');
+    $isOwner = $authUser && (int) $comment->user_id === (int) $authUser->id;
+    $isOwnerByName = $authUser
+        && ! $comment->user_id
+        && $comment->author_name
+        && strcasecmp($comment->author_name, $authUser->name) === 0;
+
+    if (! $isOwner && ! $isOwnerByName && ! $isAdmin) {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
+    $validated = $request->validate([
+        'content' => 'required|string|max:2000',
+    ]);
+
+    $comment->update([
+        'content' => $validated['content'],
+    ]);
+
+    return response()->json($comment->fresh()->load('user:id,name'));
+})->middleware('auth:sanctum');
+
+Route::delete('/tasks/{task}/comments/{comment}', function (Request $request, Task $task, Comment $comment) {
+    if ((int) $comment->task_id !== (int) $task->id) {
+        return response()->json(['message' => 'Comment does not belong to this task'], 422);
+    }
+
+    $authUser = $request->user();
+    $isAdmin = $authUser && method_exists($authUser, 'hasRole') && $authUser->hasRole('admin');
+    $isOwner = $authUser && (int) $comment->user_id === (int) $authUser->id;
+    $isOwnerByName = $authUser
+        && ! $comment->user_id
+        && $comment->author_name
+        && strcasecmp($comment->author_name, $authUser->name) === 0;
+
+    if (! $isOwner && ! $isOwnerByName && ! $isAdmin) {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
+    $comment->delete();
+
+    return response()->json(['message' => 'Deleted']);
+})->middleware('auth:sanctum');
+
 Route::get('/tasks/{task}/mentionable-users', function (Task $task) {
-    $project = $task->project()->with(['members:id,name,email', 'user:id,name,email'])->first();
+    $project = $task->project()->with(['members:id,name,email,profile_photo_path', 'user:id,name,email,profile_photo_path'])->first();
 
     if (! $project) {
         return [];
@@ -182,6 +234,7 @@ Route::get('/tasks/{task}/mentionable-users', function (Task $task) {
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'profile_photo_url' => $user->profile_photo_url,
         ]);
 
     return $users;
