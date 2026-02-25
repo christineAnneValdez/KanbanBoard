@@ -8,7 +8,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "start": "node .output/server/index.mjs",
-    "postinstall": "nuxt prepare",
+    "fix:oxc-binding": "node scripts/ensure-oxc-binding.mjs",
+    "postinstall": "npm run fix:oxc-binding && nuxt prepare",
     "ui:add": "npx --yes ui-thing@latest add"
   },
   "dependencies": {
