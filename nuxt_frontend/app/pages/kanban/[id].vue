@@ -5,7 +5,7 @@
     <h1 v-if="projectName" class="mb-6 text-xl font-bold sm:mb-8 sm:text-2xl">
       {{ projectName }}
     </h1>
-    <div v-else class="flex h-[70vh] w-full items-center justify-center">
+    <div v-if="isLoading" class="flex h-[70vh] w-full items-center justify-center">
       <div class="flex flex-col items-center">
         <div
           class="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-black"
@@ -15,7 +15,7 @@
     </div>
 
     <div
-      v-if="columns.length"
+      v-else-if="projectName && columns.length"
       class="min-h-0 flex-1 overflow-x-auto overflow-y-hidden pb-2"
     >
       <draggable
@@ -205,6 +205,7 @@
 
   const {
     projectName,
+    isLoading,
     openTask,
     columns,
     dragging,

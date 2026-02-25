@@ -1,9 +1,12 @@
 import { ref } from "vue";
+import { useAuth } from "@/composables/useAuth";
 
 const isOpen = ref(false);
 const task = ref(null);
+const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
 export function useTaskModal() {
+  const { token } = useAuth();
   let onUpdatedCallback = null;
 
   const open = (taskData) => {
@@ -24,11 +27,12 @@ export function useTaskModal() {
     if (!task.value) return null;
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/tasks/${task.value.id}`, {
+      const response = await fetch(`${API_BASE}/tasks/${task.value.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
         },
         body: JSON.stringify({
           group_id: task.value.group_id,

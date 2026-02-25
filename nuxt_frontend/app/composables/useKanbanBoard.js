@@ -1,17 +1,29 @@
 import { ref, nextTick } from 'vue'
+import { useAuth } from '@/composables/useAuth'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api'
 
 export function useKanbanBoard(projectId) {
+  const { token } = useAuth()
   const columns = ref([])
   const dragging = ref(false)
   const addingColumn = ref(false)
   const newColumnTitle = ref('')
   const board = ref(null)
 
+  const authHeaders = () =>
+    token.value
+      ? { Authorization: `Bearer ${token.value}` }
+      : {}
+
   const fetchKanban = async () => {
     try {
-      const res = await fetch(`${API_BASE}/projects/${projectId}/kanban`)
+      const res = await fetch(`${API_BASE}/projects/${projectId}/kanban`, {
+        headers: authHeaders(),
+      })
+      if (!res.ok) {
+        throw new Error(`Failed to load Kanban (${res.status})`)
+      }
       const data = await res.json()
      columns.value = data.groups
       .sort((a, b) => a.sort - b.sort) 
@@ -32,6 +44,7 @@ export function useKanbanBoard(projectId) {
       })
     } catch (error) {
       console.error('Error loading Kanban data:', error)
+      columns.value = []
     }
   }
 
@@ -43,7 +56,7 @@ export function useKanbanBoard(projectId) {
     try {
       const res = await fetch(`${API_BASE}/tasks`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           name,
           group_id: column.id,
@@ -83,11 +96,10 @@ export function useKanbanBoard(projectId) {
     try {
       const res = await fetch(`${API_BASE}/groups`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({
           name: title,
           sort: columns.value.length + 1,
-          user_id: 1,
         }),
       })
       const newGroup = await res.json()
@@ -129,7 +141,7 @@ export function useKanbanBoard(projectId) {
       targetColumn.tasks.map(t =>
         fetch(`${API_BASE}/tasks/${t.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
           body: JSON.stringify({
             name: t.name,
             group_id: t.group_id,
@@ -153,7 +165,7 @@ export function useKanbanBoard(projectId) {
         columns.value.map(col =>
           fetch(`${API_BASE}/groups/${col.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
             body: JSON.stringify({ name: col.title, sort: col.sort }),
           })
         )
@@ -183,7 +195,7 @@ export function useKanbanBoard(projectId) {
     try {
       const res = await fetch(`${API_BASE}/groups/${column.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
         body: JSON.stringify({ name: newTitle, sort: column.sort }),
       })
 

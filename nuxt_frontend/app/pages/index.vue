@@ -98,7 +98,7 @@
       </article>
     </section>
 
-    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm mb-5">
       <h2 class="text-base font-semibold text-slate-900">Top Groups by Tasks</h2>
       <p class="mt-1 text-sm text-slate-500">Highest-volume groups across all projects</p>
 

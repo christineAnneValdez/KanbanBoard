@@ -1,13 +1,15 @@
 // composables/useKanbanPage.js
-import { onMounted } from "vue"
-import { useRoute } from "vue-router"
+import { onMounted, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
 import { useKanbanBoard } from "@/composables/useKanbanBoard"
 import { useProjectDetails } from "@/composables/useProjectDetails"
 import { useTaskModal } from "@/composables/useTaskModal"
 
 export function useKanbanPage() {
   const route = useRoute()
+  const router = useRouter()
   const projectId = route.params.id
+  const isLoading = ref(true)
 
   const { projectName, fetchProject } = useProjectDetails()
   const { open: openTask } = useTaskModal()
@@ -45,12 +47,24 @@ export function useKanbanPage() {
   }
 
   onMounted(async () => {
-    await fetchProject(projectId)
-    await fetchKanban()
+    isLoading.value = true
+    try {
+      const [projectLoaded] = await Promise.all([
+        fetchProject(projectId),
+        fetchKanban(),
+      ])
+
+      if (!projectLoaded) {
+        router.replace("/projects/project")
+      }
+    } finally {
+      isLoading.value = false
+    }
   })
 
   return {
     projectName,
+    isLoading,
     openTask,
     columns,
     dragging,

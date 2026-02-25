@@ -12,6 +12,17 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 
+/**
+ * Return true when user is project creator or assigned member.
+ */
+$canAccessProject = function (User $user, Project $project): bool {
+    if ((int) $project->user_id === (int) $user->id) {
+        return true;
+    }
+
+    return $project->members()->where('users.id', $user->id)->exists();
+};
+
 Route::post("/login", [AuthController::class, "login"]);
 Route::post("/register", [AuthController::class, "register"]);
 Route::post("/logout", [AuthController::class, "logout"])->middleware("auth:sanctum");
@@ -39,11 +50,19 @@ Route::middleware('auth:sanctum')->get('/projects', function (Request $request) 
         ->get();
 });
 
-Route::get('/projects/{project}', function (Project $project) {
-    return $project;
-});
+Route::get('/projects/{project}', function (Request $request, Project $project) use ($canAccessProject) {
+    if (! $canAccessProject($request->user(), $project)) {
+        return response()->json(['message' => 'Not found'], 404);
+    }
 
-Route::get('/projects/{project}/kanban', function (Project $project) {
+    return $project;
+})->middleware('auth:sanctum');
+
+Route::get('/projects/{project}/kanban', function (Request $request, Project $project) use ($canAccessProject) {
+    if (! $canAccessProject($request->user(), $project)) {
+        return response()->json(['message' => 'Not found'], 404);
+    }
+
     return [
         'project' => $project,
         'groups' => Group::with([
@@ -55,20 +74,23 @@ Route::get('/projects/{project}/kanban', function (Project $project) {
         ->orderBy('sort')
         ->get(),
     ];
-});
+})->middleware('auth:sanctum');
 
 Route::post('/groups', function (Request $request) {
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'sort' => 'nullable|integer',
-        'user_id' => 'required|integer',
     ]);
 
-    $group = Group::create($validated);
+    $group = Group::create([
+        'name' => $validated['name'],
+        'sort' => $validated['sort'] ?? 0,
+        'user_id' => $request->user()->id,
+    ]);
     return response()->json($group, 201);
-});
+})->middleware('auth:sanctum');
 
-Route::post('/tasks', function (Request $request) {
+Route::post('/tasks', function (Request $request) use ($canAccessProject) {
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'description' => 'nullable|string|max:1000',
@@ -80,12 +102,21 @@ Route::post('/tasks', function (Request $request) {
         'due_date' => 'nullable|date|after_or_equal:start_date',
     ]);
 
+    $project = Project::findOrFail($validated['project_id']);
+    if (! $canAccessProject($request->user(), $project)) {
+        return response()->json(['message' => 'Not found'], 404);
+    }
+
     $task = Task::create($validated);
 
     return response()->json($task->load('assignee:id,name,email,profile_photo_path'), 201);
-});
+})->middleware('auth:sanctum');
 
-Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task $task) {
+Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task $task) use ($canAccessProject) {
+    if (! $task->project || ! $canAccessProject($request->user(), $task->project)) {
+        return response()->json(['message' => 'Not found'], 404);
+    }
+
     $validated = $request->validate([
         'name' => 'nullable|string|max:255',
         'description' => 'nullable|string|max:1000',
@@ -99,10 +130,14 @@ Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task
     $task->update($validated);
 
     return response()->json($task->load('assignee:id,name,email,profile_photo_path'));
-});
+})->middleware('auth:sanctum');
 
 
 Route::match(['put', 'patch'], '/groups/{group}', function (Request $request, Group $group) {
+    if ((int) $group->user_id !== (int) $request->user()->id) {
+        return response()->json(['message' => 'Not found'], 404);
+    }
+
     $validated = $request->validate([
         'name' => 'sometimes|string|max:255',
         'sort' => 'nullable|integer',
@@ -111,7 +146,7 @@ Route::match(['put', 'patch'], '/groups/{group}', function (Request $request, Gr
     $group->update($validated);
 
     return response()->json($group);
-});
+})->middleware('auth:sanctum');
 
 Route::get('/labels', fn() => Label::all());
 
