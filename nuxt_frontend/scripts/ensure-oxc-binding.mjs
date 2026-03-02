@@ -5,6 +5,11 @@ import process from "node:process";
 
 const root = process.cwd();
 
+if (process.platform !== "linux") {
+  console.log("[ensure-oxc-binding] Non-linux platform detected. Skipping Linux binding install.");
+  process.exit(0);
+}
+
 const parserGnuBinding = path.join(
   root,
   "node_modules",

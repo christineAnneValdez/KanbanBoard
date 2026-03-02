@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
-  devtools: { enabled: true },
+  devtools: { enabled: false },
   future: { compatibilityVersion: 4 },
   experimental: {
     inlineSSRStyles: true,
@@ -42,6 +42,21 @@ export default defineNuxtConfig({
     { path: '~/components' }, // your own components
     { path: 'lucide-vue-next', prefix: 'Icon' } // lucide icons
   ],
+
+  vite: {
+    server: {
+      proxy: {
+        "/api": {
+          target: process.env.NUXT_DEV_PROXY_TARGET || "http://127.0.0.1:8000",
+          changeOrigin: true,
+        },
+      },
+      hmr: {
+        // Avoid default 24678 clashes when tests/dev run in parallel.
+        port: Number(process.env.NUXT_HMR_PORT || 24679),
+      },
+    },
+  },
 
   imports: {
     imports: [{
