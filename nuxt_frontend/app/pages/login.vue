@@ -27,7 +27,10 @@
         </div>
 
         <button
-          class="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-blue-700"
+          type="button"
+          :disabled="!isHydrated"
+          @click="submit"
+          class="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Login
         </button>
@@ -45,9 +48,10 @@
 
 <script setup>
   import { useAuth } from "~/composables/useAuth";
-  import { ref } from "vue";
+  import { onMounted, ref } from "vue";
 
   const error = ref("");
+  const isHydrated = ref(false);
 
   definePageMeta({
     middleware: "guest",
@@ -57,14 +61,22 @@
   const password = ref("");
   const { login } = useAuth();
 
+  onMounted(() => {
+    isHydrated.value = true;
+  });
+
   const submit = async () => {
     error.value = "";
 
     try {
       await login(email.value, password.value);
-      navigateTo("/");
+      await navigateTo("/");
     } catch (e) {
-      error.value = e?.data?.message || "Invalid email or password.";
+      const apiMessage =
+        e?.response?.data?.message ||
+        Object.values(e?.response?.data?.errors || {})?.[0]?.[0] ||
+        e?.message;
+      error.value = apiMessage || "Invalid email or password.";
     }
   };
 </script>

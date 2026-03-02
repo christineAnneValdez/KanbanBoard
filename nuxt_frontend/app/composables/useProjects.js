@@ -1,10 +1,11 @@
 // composables/useProjects.js
 import { useAuth } from "~/composables/useAuth";
+import { resolveApiBase } from "~/composables/useAxio";
 import { onMounted, ref } from "vue";
 
 export function useProjects() {
   const runtimeConfig = useRuntimeConfig();
-  const API_BASE = runtimeConfig.public.apiBase || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+  const API_BASE = resolveApiBase(runtimeConfig);
   const projects = ref([]);
   const pending = ref(false);
   const error = ref(null);
@@ -21,12 +22,15 @@ export function useProjects() {
         method: "GET",
         headers: {
           Accept: "application/json",
-          Authorization: `Bearer ${token.value}`, // IMPORTANT
+          ...(token.value ? { Authorization: `Bearer ${token.value}` } : {}),
         },
       });
 
       if (!res.ok) {
-        throw new Error(`Failed to fetch projects: ${res.status}`);
+        const responseText = await res.text().catch(() => "");
+        throw new Error(
+          `Failed to fetch projects: ${res.status}${responseText ? ` - ${responseText}` : ""}`
+        );
       }
 
       // Backend returns only the user's projects

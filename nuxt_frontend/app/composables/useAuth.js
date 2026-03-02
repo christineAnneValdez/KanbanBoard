@@ -19,21 +19,29 @@ export const useAuth = () => {
       email,
       password,
     });
+    return data;
   };
 
   const logout = async () => {
-    await api.post(
-      "/logout",
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token.value}`,
-        },
+    try {
+      if (token.value) {
+        await api.post(
+          "/logout",
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token.value}`,
+            },
+          }
+        );
       }
-    );
-
-    token.value = null;
-    user.value = null;
+    } catch (error) {
+      // Still clear local auth state even if server logout fails.
+      console.error("Logout API error:", error);
+    } finally {
+      token.value = null;
+      user.value = null;
+    }
   };
 
   return { user, token, login, register, logout };

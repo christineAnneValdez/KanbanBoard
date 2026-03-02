@@ -9,6 +9,7 @@
         <div>
           <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Name</label>
           <input
+            name="name"
             v-model="name"
             type="text"
             placeholder="Your full name"
@@ -20,6 +21,7 @@
         <div>
           <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Email</label>
           <input
+            name="email"
             v-model="email"
             type="email"
             placeholder="Your email address"
@@ -31,6 +33,8 @@
         <div>
           <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
           <input
+            ref="passwordInputEl"
+            name="password"
             v-model="password"
             type="password"
             placeholder="Create a password"
@@ -41,7 +45,9 @@
         </div>
 
         <button
-          class="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-blue-700"
+          type="submit"
+          :disabled="!isHydrated"
+          class="w-full rounded-lg bg-blue-600 py-2 text-sm font-semibold text-white transition duration-200 hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           Register
         </button>
@@ -57,10 +63,11 @@
 
 <script setup>
   import { useAuth } from "~/composables/useAuth";
-  import { ref } from "vue";
+  import { onMounted, ref } from "vue";
   import { useToast } from "vue-toastification";
 
   const toast = useToast();
+  const isHydrated = ref(false);
 
   definePageMeta({
     middleware: "guest",
@@ -69,24 +76,43 @@
   const name = ref("");
   const email = ref("");
   const password = ref("");
+  const passwordInputEl = ref(null);
   const { register } = useAuth();
 
-  const submit = async () => {
-    try {
-      if (password.value.length < 8) {
-        toast.error("Password must be at least 8 characters.");
-        return;
-      }
+  onMounted(() => {
+    isHydrated.value = true;
+  });
 
-      await register(name.value, email.value, password.value);
+  const submit = async (event) => {
+    try {
+      const formEl =
+        event?.target?.closest?.("form") || passwordInputEl.value?.closest?.("form");
+      const formData = formEl ? new FormData(formEl) : null;
+
+      const resolvedName = String(formData?.get("name") || name.value || "");
+      const resolvedEmail = String(formData?.get("email") || email.value || "");
+      const resolvedPassword = String(
+        passwordInputEl.value?.value || formData?.get("password") || password.value || ""
+      );
+      const normalizedPassword = resolvedPassword.trim();
+
+      name.value = resolvedName;
+      email.value = resolvedEmail;
+      password.value = normalizedPassword;
+      await register(resolvedName, resolvedEmail, normalizedPassword);
       toast.success("Registration successful.");
-      navigateTo("/login");
+      await navigateTo("/login");
     } catch (error) {
       const apiMessage =
         error?.response?.data?.message ||
-        Object.values(error?.response?.data?.errors || {})?.[0]?.[0];
+        Object.values(error?.response?.data?.errors || {})?.[0]?.[0] ||
+        error?.message;
+      const isNetworkError = !error?.response;
+      const fallbackMessage = isNetworkError
+        ? "Cannot reach API server at 127.0.0.1:8000. Start Laravel backend."
+        : "Registration failed. Please try again.";
 
-      toast.error(apiMessage || "Registration failed. Please try again.");
+      toast.error(apiMessage || fallbackMessage);
       console.log(error);
     }
   };

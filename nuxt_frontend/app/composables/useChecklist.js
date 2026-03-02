@@ -1,8 +1,9 @@
 import { ref } from "vue";
+import { resolveApiBase } from "~/composables/useAxio";
 
 export function useChecklists(taskId) {
   const runtimeConfig = useRuntimeConfig();
-  const API_BASE = runtimeConfig.public.apiBase || import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
+  const API_BASE = resolveApiBase(runtimeConfig);
   const checklists = ref([]);
   const loading = ref(false);
 
