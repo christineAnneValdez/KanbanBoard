@@ -28,12 +28,9 @@ ENV PORT=3000
 COPY --from=frontend-build /app/.output ./.output
 COPY --from=frontend-build /app/node_modules ./node_modules
 COPY --from=frontend-build /app/package.json ./package.json
-COPY docker/frontend-entrypoint.sh /usr/local/bin/frontend-entrypoint
-RUN sed -i 's/\r$//' /usr/local/bin/frontend-entrypoint \
-    && chmod +x /usr/local/bin/frontend-entrypoint
 
 EXPOSE 3000
-CMD ["frontend-entrypoint"]
+CMD ["sh", "-c", "APP_SCHEME=${APP_SCHEME:-https}; if [ -n \"${APP_DOMAIN:-}\" ] && [ -z \"${NUXT_PUBLIC_API_BASE:-}\" ]; then if [ -n \"${BACKEND_SUBDOMAIN:-}\" ]; then BACKEND_HOST=${BACKEND_SUBDOMAIN}.${APP_DOMAIN}; else BACKEND_HOST=${APP_DOMAIN}; fi; export NUXT_PUBLIC_API_BASE=${APP_SCHEME}://${BACKEND_HOST}/api; fi; exec node .output/server/index.mjs"]
 
 ############################
 # Backend (Laravel) deps
