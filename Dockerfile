@@ -37,8 +37,10 @@ CMD ["frontend-entrypoint"]
 ############################
 # Backend (Laravel) deps
 ############################
-FROM composer:2 AS backend-composer
+FROM php:${PHP_VERSION}-cli AS backend-composer
 WORKDIR /app
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY laravel_backend/composer.json laravel_backend/composer.lock ./
 RUN composer install \
