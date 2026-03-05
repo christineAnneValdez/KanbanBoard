@@ -29,7 +29,8 @@ COPY --from=frontend-build /app/.output ./.output
 COPY --from=frontend-build /app/node_modules ./node_modules
 COPY --from=frontend-build /app/package.json ./package.json
 COPY docker/frontend-entrypoint.sh /usr/local/bin/frontend-entrypoint
-RUN chmod +x /usr/local/bin/frontend-entrypoint
+RUN sed -i 's/\r$//' /usr/local/bin/frontend-entrypoint \
+    && chmod +x /usr/local/bin/frontend-entrypoint
 
 EXPOSE 3000
 CMD ["frontend-entrypoint"]
@@ -91,6 +92,7 @@ COPY docker/backend-entrypoint.sh /usr/local/bin/backend-entrypoint
 
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R ug+rwx storage bootstrap/cache \
+    && sed -i 's/\r$//' /usr/local/bin/backend-entrypoint \
     && chmod +x /usr/local/bin/backend-entrypoint
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
