@@ -1,5 +1,13 @@
 <?php
 
+$frontendHost = env('FRONTEND_SUBDOMAIN')
+    ? env('FRONTEND_SUBDOMAIN').'.'.env('APP_DOMAIN')
+    : env('APP_DOMAIN');
+
+$defaultAllowedOrigins = $frontendHost
+    ? 'https://'.$frontendHost
+    : 'http://localhost:3000,http://127.0.0.1:3000';
+
 return [
 
     /*
@@ -21,7 +29,7 @@ return [
 
     'allowed_origins' => array_filter(array_map(
         'trim',
-        explode(',', env('CORS_ALLOWED_ORIGINS', 'http://localhost:3000,http://127.0.0.1:3000'))
+        explode(',', env('CORS_ALLOWED_ORIGINS', $defaultAllowedOrigins))
     )),
 
     'allowed_origins_patterns' => [],
