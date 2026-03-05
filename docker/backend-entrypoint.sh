@@ -1,0 +1,35 @@
+#!/bin/sh
+set -eu
+
+APP_SCHEME="${APP_SCHEME:-https}"
+
+if [ -n "${APP_DOMAIN:-}" ]; then
+  FRONTEND_SUBDOMAIN="${FRONTEND_SUBDOMAIN:-}"
+  BACKEND_SUBDOMAIN="${BACKEND_SUBDOMAIN:-}"
+
+  if [ -n "$FRONTEND_SUBDOMAIN" ]; then
+    FRONTEND_HOST="${FRONTEND_SUBDOMAIN}.${APP_DOMAIN}"
+  else
+    FRONTEND_HOST="${APP_DOMAIN}"
+  fi
+
+  if [ -n "$BACKEND_SUBDOMAIN" ]; then
+    BACKEND_HOST="${BACKEND_SUBDOMAIN}.${APP_DOMAIN}"
+  else
+    BACKEND_HOST="${APP_DOMAIN}"
+  fi
+
+  : "${APP_URL:=${APP_SCHEME}://${BACKEND_HOST}}"
+  : "${CORS_ALLOWED_ORIGINS:=${APP_SCHEME}://${FRONTEND_HOST}}"
+  : "${SANCTUM_STATEFUL_DOMAINS:=${FRONTEND_HOST}}"
+
+  export APP_URL
+  export CORS_ALLOWED_ORIGINS
+  export SANCTUM_STATEFUL_DOMAINS
+
+  if [ -z "${SESSION_DOMAIN:-}" ] && [ "${FRONTEND_HOST}" != "${BACKEND_HOST}" ]; then
+    export SESSION_DOMAIN=".${APP_DOMAIN}"
+  fi
+fi
+
+exec apache2-foreground

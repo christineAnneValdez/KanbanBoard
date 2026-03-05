@@ -1,4 +1,4 @@
-# Task Kanban Deployment Runbook (Dokploy + Nixpacks)
+# Task Kanban Deployment Runbook (Dokploy + Dockerfile)
 
 This repository has two deployable services:
 
@@ -12,14 +12,16 @@ Deploy them as separate Dokploy applications.
 Create two services from the same repository:
 
 1. Backend service
-- Root directory: `laravel_backend`
-- Public/Web root: `public`
-- Builder: Nixpacks
+- Build type: Dockerfile
+- Dockerfile path: `Dockerfile`
+- Build target: `backend`
+- Port: `80`
 
 2. Frontend service
-- Root directory: `nuxt_frontend`
-- Builder: Nixpacks
-- Start command: `npm run start`
+- Build type: Dockerfile
+- Dockerfile path: `Dockerfile`
+- Build target: `frontend`
+- Port: `3000`
 
 Recommended deployment trigger strategy:
 
@@ -36,7 +38,6 @@ This avoids unnecessary backend redeploys when only frontend changes are pushed.
 APP_NAME=Kanban
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://dev.mctsrv.de
 APP_KEY=base64:...your-stable-key...
 
 DB_CONNECTION=mysql
@@ -49,14 +50,24 @@ DB_PASSWORD=...
 SESSION_DRIVER=file
 SESSION_SECURE_COOKIE=true
 SESSION_SAME_SITE=lax
-SESSION_DOMAIN=null
 
-CORS_ALLOWED_ORIGINS=https://dev.mctsrv.de
-SANCTUM_STATEFUL_DOMAINS=dev.mctsrv.de
+# Single source of truth:
+APP_DOMAIN=dev.mctsrv.de
+
+# Optional:
+# APP_SCHEME=https
+# FRONTEND_SUBDOMAIN=
+# BACKEND_SUBDOMAIN=
 
 # Recommended for environments where basset write/internalize can fail:
 BASSET_DEV_MODE=true
 ```
+
+The backend container now derives these automatically from `APP_DOMAIN`:
+- `APP_URL`
+- `CORS_ALLOWED_ORIGINS`
+- `SANCTUM_STATEFUL_DOMAINS`
+- `SESSION_DOMAIN` (auto-set to `.<APP_DOMAIN>` only when frontend/backend hosts differ)
 
 Important:
 
@@ -86,24 +97,18 @@ php artisan storage:link
 ### Required environment variables
 
 ```env
-NUXT_PUBLIC_API_BASE=https://dev.mctsrv.de/api
 NODE_ENV=production
+
+# Single source of truth:
+APP_DOMAIN=dev.mctsrv.de
+
+# Optional:
+# APP_SCHEME=https
+# BACKEND_SUBDOMAIN=
 ```
 
-### Node runtime requirement
-
-Nuxt 4 requires Node 20+.
-
-This repo includes:
-
-- `nuxt_frontend/nixpacks.toml` with `NIXPACKS_NODE_VERSION = "22"`
-- `nuxt_frontend/package.json` engines: `>=20.19.0`
-
-If Dokploy still uses Node 18, verify service root is `nuxt_frontend` and set app env var:
-
-```env
-NIXPACKS_NODE_VERSION=22
-```
+The frontend container now derives this automatically from `APP_DOMAIN`:
+- `NUXT_PUBLIC_API_BASE` (defaults to `https://<backend-host>/api`)
 
 ## 4. Admin Bootstrap (Backpack)
 
@@ -169,7 +174,7 @@ php artisan config:cache
 ```
 
 4. Frontend build fails with OXC native binding / Node mismatch
-- Ensure Node 22 via `nixpacks.toml` or Dokploy env var.
+- Ensure Dokploy is building the `frontend` target from the root `Dockerfile` (Node 22).
 - Keep the existing `scripts/ensure-oxc-binding.mjs` workaround.
 
 ## 6. Verification Checklist

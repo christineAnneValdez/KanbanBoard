@@ -28,9 +28,11 @@ ENV PORT=3000
 COPY --from=frontend-build /app/.output ./.output
 COPY --from=frontend-build /app/node_modules ./node_modules
 COPY --from=frontend-build /app/package.json ./package.json
+COPY docker/frontend-entrypoint.sh /usr/local/bin/frontend-entrypoint
+RUN chmod +x /usr/local/bin/frontend-entrypoint
 
 EXPOSE 3000
-CMD ["node", ".output/server/index.mjs"]
+CMD ["frontend-entrypoint"]
 
 ############################
 # Backend (Laravel) deps
@@ -76,13 +78,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY laravel_backend/ ./
 COPY --from=backend-composer /app/vendor ./vendor
 COPY --from=backend-assets /app/public/build ./public/build
+COPY docker/backend-entrypoint.sh /usr/local/bin/backend-entrypoint
 
 RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R ug+rwx storage bootstrap/cache
+    && chmod -R ug+rwx storage bootstrap/cache \
+    && chmod +x /usr/local/bin/backend-entrypoint
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
 EXPOSE 80
-CMD ["apache2-foreground"]
+CMD ["backend-entrypoint"]
