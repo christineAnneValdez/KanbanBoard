@@ -10,6 +10,7 @@ FROM node:${NODE_VERSION}-alpine AS frontend-build
 WORKDIR /app
 
 COPY nuxt_frontend/package*.json ./
+COPY nuxt_frontend/scripts ./scripts
 RUN npm ci
 
 COPY nuxt_frontend/ ./
