@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // Explicitly enable CORS middleware for API preflight/actual requests.
         $middleware->append(HandleCors::class);
+        $middleware->validateCsrfTokens(except: [
+            'admin/*/search',
+        ]);
 
          $middleware->alias([
      'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,

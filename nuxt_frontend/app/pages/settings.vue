@@ -143,14 +143,14 @@
 <script setup>
   import { computed, ref, watch } from "vue";
   import { useAuth } from "~/composables/useAuth";
-  import { useAxio } from "~/composables/useAxio";
+  import { useApi } from "~/composables/useApi";
 
   definePageMeta({
     middleware: "auth",
   });
 
   const { user, token } = useAuth();
-  const { api } = useAxio();
+  const { api } = useApi();
 
   const name = ref(user.value?.name || "");
   const profilePhotoFile = ref(null);

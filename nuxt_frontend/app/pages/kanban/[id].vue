@@ -67,6 +67,7 @@
             v-model="column.tasks"
             tag="ul"
             group="tasks"
+            item-key="id"
             animation="300"
             ghost-class="opacity-50"
             class="flex flex-col gap-2 overflow-y-auto"

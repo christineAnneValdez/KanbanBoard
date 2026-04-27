@@ -8,25 +8,6 @@ export default defineNuxtConfig({
   experimental: {
     inlineSSRStyles: true,
   },
-  app: {
-    head: {
-      htmlAttrs: {
-        class: "nuxt-preload",
-      },
-      style: [
-        {
-          children:
-            "html,body{background:#f9fafb;}@media (prefers-color-scheme: dark){html,body{background:#030712;}}html.nuxt-preload #__nuxt{opacity:0;visibility:hidden;}html.nuxt-ready #__nuxt{opacity:1;visibility:visible;transition:opacity .15s ease;}",
-        },
-      ],
-      script: [
-        {
-          children:
-            "(function(){function r(){var d=document.documentElement;d.classList.remove('nuxt-preload');d.classList.add('nuxt-ready')}if(document.readyState==='complete'){r()}else{window.addEventListener('load',r,{once:true});setTimeout(r,4000)}})();",
-        },
-      ],
-    },
-  },
 
   modules: [
      "@nuxt/ui",
@@ -45,12 +26,6 @@ export default defineNuxtConfig({
 
   vite: {
     server: {
-      proxy: {
-        "/api": {
-          target: process.env.NUXT_DEV_PROXY_TARGET || "http://127.0.0.1:8000",
-          changeOrigin: true,
-        },
-      },
       hmr: {
         // Avoid default 24678 clashes when tests/dev run in parallel.
         port: Number(process.env.NUXT_HMR_PORT || 24679),
@@ -77,7 +52,7 @@ export default defineNuxtConfig({
     storageKey: "nuxt_frontend-color-mode",
     storage: "cookie",
     fallback: "light",
-    preference: "system",
+    preference: "light",
     classSuffix: "",
   },
 
@@ -85,11 +60,18 @@ export default defineNuxtConfig({
     clientBundle: {
       scan: true,
       sizeLimitKb: 0,
+      icons: [
+        "heroicons:arrow-right-start-on-rectangle",
+        "heroicons:bars-3",
+        "heroicons:clipboard-document-list",
+        "heroicons:cog-6-tooth",
+        "heroicons:home",
+      ],
     },
 
     mode: "svg",
     class: "shrink-0",
-    fetchTimeout: 2000,
+    fetchTimeout: 10000,
     serverBundle: "local",
   },
 
@@ -97,17 +79,6 @@ export default defineNuxtConfig({
   "~/assets/css/richtext.css"],
 
   
-
-  nitro: {
-  devProxy: {
-    '/api': {
-      target: process.env.NUXT_DEV_PROXY_TARGET || 'http://127.0.0.1:8000',
-      changeOrigin: true,
-      prependPath: true,
-    },
-  },
-},
-
 runtimeConfig: {
   public: {
     apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',

@@ -25,6 +25,7 @@ Route::group([
 
     Route::group(['middleware' => ['permission:manage groups']], function () {
         Route::crud('group', 'GroupCrudController');
+        Route::crud('workflow-template', 'WorkflowTemplateCrudController');
     });
 
     Route::group(['middleware' => ['permission:manage task']], function () {

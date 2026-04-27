@@ -1,6 +1,6 @@
 import { ref, nextTick } from 'vue'
 import { useAuth } from '@/composables/useAuth'
-import { resolveApiBase } from '@/composables/useAxio'
+import { resolveApiBase } from '@/composables/useApi'
 
 export function useKanbanBoard(projectId) {
   const { token } = useAuth()
@@ -101,6 +101,7 @@ export function useKanbanBoard(projectId) {
         body: JSON.stringify({
           name: title,
           sort: columns.value.length + 1,
+          project_id: projectId,
         }),
       })
       const newGroup = await res.json()

@@ -25,7 +25,10 @@ class GroupRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'name' => 'required|min:5|max:255'
+            'name' => 'required|string|min:2|max:255',
+            'sort' => 'required|integer|min:0',
+            'user_id' => 'required|exists:users,id',
+            'project_id' => 'required|exists:projects,id',
         ];
     }
 

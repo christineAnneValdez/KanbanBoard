@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\ProjectRequest;
+use App\Services\ProjectWorkflowService;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use App\Models\User;
@@ -15,8 +16,12 @@ use App\Models\User;
 class ProjectCrudController extends CrudController
 {
     use \Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
+    use \Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation {
+        store as traitStore;
+    }
+    use \Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation {
+        update as traitUpdate;
+    }
     use \Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
     use \Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 
@@ -41,13 +46,21 @@ class ProjectCrudController extends CrudController
     protected function setupListOperation()
     {
         CRUD::column('name')->label('Project Name');
-         CRUD::addColumn([
+        CRUD::addColumn([
             'name' => 'user_id',
             'type' => 'select',
             'entity' => 'user',
             'attribute' => 'name',
             'model' => "App\Models\User",
             'label' => 'User'
+        ]);
+        CRUD::addColumn([
+            'name' => 'workflow_template_id',
+            'type' => 'select',
+            'entity' => 'workflowTemplate',
+            'attribute' => 'name',
+            'model' => "App\Models\WorkflowTemplate",
+            'label' => 'Workflow Template'
         ]);
 
         CRUD::addColumn([
@@ -82,6 +95,14 @@ class ProjectCrudController extends CrudController
             'model' => "App\Models\User",
             'label' => 'Assigned User'
         ]);
+        CRUD::addField([
+            'name' => 'workflow_template_id',
+            'type' => 'select',
+            'entity' => 'workflowTemplate',
+            'attribute' => 'name',
+            'model' => "App\Models\WorkflowTemplate",
+            'label' => 'Workflow Template'
+        ]);
 
         CRUD::addField([
             'name'        => 'members',
@@ -114,6 +135,14 @@ class ProjectCrudController extends CrudController
             'attribute' => 'name',
             'model' => "App\Models\User",
         ]);
+        CRUD::addColumn([
+            'name' => 'workflow_template_id',
+            'type' => 'select',
+            'entity' => 'workflowTemplate',
+            'attribute' => 'name',
+            'model' => "App\Models\WorkflowTemplate",
+            'label' => 'Workflow Template'
+        ]);
 
          CRUD::addColumn([
             'name'      => 'members',
@@ -142,5 +171,30 @@ class ProjectCrudController extends CrudController
     protected function setupUpdateOperation()
     {
         $this->setupCreateOperation();
+    }
+
+    public function store()
+    {
+        $response = $this->traitStore();
+        $this->syncProjectWorkflow();
+
+        return $response;
+    }
+
+    public function update()
+    {
+        $response = $this->traitUpdate();
+        $this->syncProjectWorkflow();
+
+        return $response;
+    }
+
+    private function syncProjectWorkflow(): void
+    {
+        if (! $this->crud->entry) {
+            return;
+        }
+
+        app(ProjectWorkflowService::class)->syncProjectGroups($this->crud->entry->fresh());
     }
 }

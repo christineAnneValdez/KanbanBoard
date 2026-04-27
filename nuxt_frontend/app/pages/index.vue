@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-  import { useAxio } from "~/composables/useAxio";
+  import { useApi } from "~/composables/useApi";
   import { useAuth } from "~/composables/useAuth";
   import { computed, onMounted, ref } from "vue";
 
@@ -128,7 +128,7 @@
   });
 
   const { user, token } = useAuth();
-  const { api } = useAxio();
+  const { api } = useApi();
 
   const displayName = computed(() => user.value?.name || "User");
 

@@ -1,6 +1,6 @@
 // composables/useProjects.js
 import { useAuth } from "~/composables/useAuth";
-import { resolveApiBase } from "~/composables/useAxio";
+import { resolveApiBase } from "~/composables/useApi";
 import { onMounted, ref } from "vue";
 
 export function useProjects() {

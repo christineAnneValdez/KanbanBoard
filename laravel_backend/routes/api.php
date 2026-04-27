@@ -8,6 +8,7 @@ use App\Models\Label;
 use App\Models\Checklist;
 use App\Models\User;
 use App\Models\Comment;
+use App\Services\ProjectWorkflowService;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
@@ -46,7 +47,7 @@ Route::get('/tasks', function () {
 Route::middleware('auth:sanctum')->get('/projects', function (Request $request) {
     return $request->user()
         ->projects()        // only projects assigned through project_user pivot
-        ->with('user')      // also show creator
+        ->with(['user', 'workflowTemplate'])      // also show creator
         ->get();
 });
 
@@ -55,37 +56,47 @@ Route::get('/projects/{project}', function (Request $request, Project $project) 
         return response()->json(['message' => 'Not found'], 404);
     }
 
-    return $project;
+    return $project->load(['user', 'workflowTemplate']);
 })->middleware('auth:sanctum');
 
-Route::get('/projects/{project}/kanban', function (Request $request, Project $project) use ($canAccessProject) {
+Route::get('/projects/{project}/kanban', function (Request $request, Project $project, ProjectWorkflowService $workflowService) use ($canAccessProject) {
     if (! $canAccessProject($request->user(), $project)) {
         return response()->json(['message' => 'Not found'], 404);
     }
 
+    $workflowService->syncProjectGroups($project);
+
     return [
-        'project' => $project,
+        'project' => $project->load('workflowTemplate'),
         'groups' => Group::with([
             'tasks' => function ($query) use ($project) {
                 $query->where('project_id', $project->id)
                       ->with(['labels', 'assignee:id,name,email,profile_photo_path']);
             }
         ])
+        ->where('project_id', $project->id)
         ->orderBy('sort')
         ->get(),
     ];
 })->middleware('auth:sanctum');
 
-Route::post('/groups', function (Request $request) {
+Route::post('/groups', function (Request $request) use ($canAccessProject) {
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'sort' => 'nullable|integer',
+        'project_id' => 'required|integer|exists:projects,id',
     ]);
+
+    $project = Project::findOrFail($validated['project_id']);
+    if (! $canAccessProject($request->user(), $project)) {
+        return response()->json(['message' => 'Not found'], 404);
+    }
 
     $group = Group::create([
         'name' => $validated['name'],
         'sort' => $validated['sort'] ?? 0,
         'user_id' => $request->user()->id,
+        'project_id' => $project->id,
     ]);
     return response()->json($group, 201);
 })->middleware('auth:sanctum');
@@ -105,6 +116,15 @@ Route::post('/tasks', function (Request $request) use ($canAccessProject) {
     $project = Project::findOrFail($validated['project_id']);
     if (! $canAccessProject($request->user(), $project)) {
         return response()->json(['message' => 'Not found'], 404);
+    }
+
+    $groupBelongsToProject = Group::query()
+        ->whereKey($validated['group_id'])
+        ->where('project_id', $project->id)
+        ->exists();
+
+    if (! $groupBelongsToProject) {
+        return response()->json(['message' => 'Group does not belong to this project'], 422);
     }
 
     $task = Task::create($validated);
@@ -127,14 +147,25 @@ Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task
         'due_date' => 'nullable|date|after_or_equal:start_date',
     ]);
 
+    if (array_key_exists('group_id', $validated) && $validated['group_id']) {
+        $groupBelongsToProject = Group::query()
+            ->whereKey($validated['group_id'])
+            ->where('project_id', $task->project_id)
+            ->exists();
+
+        if (! $groupBelongsToProject) {
+            return response()->json(['message' => 'Group does not belong to this project'], 422);
+        }
+    }
+
     $task->update($validated);
 
     return response()->json($task->load('assignee:id,name,email,profile_photo_path'));
 })->middleware('auth:sanctum');
 
 
-Route::match(['put', 'patch'], '/groups/{group}', function (Request $request, Group $group) {
-    if ((int) $group->user_id !== (int) $request->user()->id) {
+Route::match(['put', 'patch'], '/groups/{group}', function (Request $request, Group $group) use ($canAccessProject) {
+    if (! $group->project || ! $canAccessProject($request->user(), $group->project)) {
         return response()->json(['message' => 'Not found'], 404);
     }
 

@@ -1,7 +1,7 @@
 // composables/useProjectDetails.js
 import { ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
-import { resolveApiBase } from '@/composables/useAxio'
+import { resolveApiBase } from '@/composables/useApi'
 
 export function useProjectDetails() {
   const { token } = useAuth()

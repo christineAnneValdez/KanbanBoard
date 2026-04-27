@@ -41,6 +41,14 @@ class GroupCrudController extends CrudController
     {
         CRUD::column('name')->label('Group Name');
         CRUD::column('sort')->label('Sort Order');
+        CRUD::addColumn([
+            'name' => 'project_id',
+            'type' => 'select',
+            'entity' => 'project',
+            'attribute' => 'name',
+            'model' => "App\Models\Project",
+            'label' => 'Project'
+        ]);
 
         CRUD::addColumn([
             'name' => 'user_id',
@@ -79,12 +87,28 @@ class GroupCrudController extends CrudController
             'model' => "App\Models\User",
             'label' => 'Created By',
         ]);
+        CRUD::addField([
+            'name' => 'project_id',
+            'type' => 'select',
+            'entity' => 'project',
+            'attribute' => 'name',
+            'model' => "App\Models\Project",
+            'label' => 'Project',
+        ]);
 
     }
     protected function setupShowOperation()
     {
         CRUD::column('name')->label('Group Name');
         CRUD::column('sort')->label('Sort Order');
+        CRUD::addColumn([
+            'name' => 'project_id',
+            'type' => 'select',
+            'entity' => 'project',
+            'attribute' => 'name',
+            'model' => "App\Models\Project",
+            'label' => 'Project'
+        ]);
 
         CRUD::addColumn([
             'name' => 'user_id',

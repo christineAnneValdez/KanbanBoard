@@ -1,5 +1,4 @@
 <template>
-  <!-- HIDDEN on login/register -->
   <div v-if="!hideSidebar">
     <!-- Mobile Toggle Button -->
     <button
@@ -89,14 +88,23 @@
     isOpen.value = !isOpen.value;
   };
 
-  // Hide sidebar on login & register pages
+  const { isAuthenticated, logout, hydrateFromStorage } = useAuth();
   const route = useRoute();
-  const hideSidebar = computed(() => route.path === "/login" || route.path === "/register");
 
-  // Logout logic (from useAuth)
-  const { logout } = useAuth();
+  if (import.meta.client) {
+    hydrateFromStorage();
+  }
+
+  const hideSidebar = computed(
+    () =>
+      !isAuthenticated.value ||
+      route.path === "/auth" ||
+      route.path === "/login" ||
+      route.path === "/register"
+  );
+
   const logoutUser = async () => {
     await logout();
-    await navigateTo("/login");
+    await navigateTo("/auth?mode=login");
   };
 </script>

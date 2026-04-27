@@ -1,5 +1,5 @@
 import { useAuth } from "@/composables/useAuth";
-import { useAxio } from "@/composables/useAxio";
+import { useApi } from "@/composables/useApi";
 import { ref } from "vue";
 
 const normalizeComment = (comment) => ({
@@ -15,7 +15,7 @@ const normalizeComment = (comment) => ({
 export function useComments() {
   const comments = ref([]);
   const mentionableUsers = ref([]);
-  const { api } = useAxio();
+  const { api } = useApi();
   const { token } = useAuth();
 
   const authHeaders = () =>

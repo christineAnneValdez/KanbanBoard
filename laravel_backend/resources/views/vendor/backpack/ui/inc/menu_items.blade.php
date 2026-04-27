@@ -25,6 +25,7 @@ $canSeeKanban =
 
 @if(backpack_user()->can('manage groups'))
     <x-backpack::menu-item title="Groups" icon="la la-columns" :link="backpack_url('group')" />
+    <x-backpack::menu-item title="Workflow Templates" icon="la la-project-diagram" :link="backpack_url('workflow-template')" />
 @endif
 
 @if(backpack_user()->can('manage labels'))

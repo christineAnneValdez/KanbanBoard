@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { useAuth } from "@/composables/useAuth";
-import { resolveApiBase } from "@/composables/useAxio";
+import { resolveApiBase } from "@/composables/useApi";
 
 const isOpen = ref(false);
 const task = ref(null);

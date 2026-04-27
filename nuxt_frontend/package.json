@@ -6,15 +6,15 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "build": "node scripts/run-nuxt.mjs build",
+    "dev": "node scripts/run-nuxt.mjs dev",
+    "generate": "node scripts/run-nuxt.mjs generate",
+    "preview": "node scripts/run-nuxt.mjs preview",
     "start": "node .output/server/index.mjs",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "fix:oxc-binding": "node scripts/ensure-oxc-binding.mjs",
-    "postinstall": "npm run fix:oxc-binding && nuxt prepare",
+    "postinstall": "npm run fix:oxc-binding && node scripts/run-nuxt.mjs prepare",
     "ui:add": "npx --yes ui-thing@latest add"
   },
   "dependencies": {
@@ -27,7 +27,6 @@
     "@vueup/vue-quill": "^1.2.0",
     "@vueuse/core": "^14.0.0",
     "@vueuse/nuxt": "^14.0.0",
-    "axios": "^1.13.2",
     "lucide-vue-next": "^0.548.0",
     "motion-v": "^1.7.4",
     "nuxt": "^4.2.0",

@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import { resolveApiBase } from "~/composables/useAxio";
+import { resolveApiBase } from "~/composables/useApi";
 
 export function useChecklists(taskId) {
   const runtimeConfig = useRuntimeConfig();

@@ -25,7 +25,9 @@ class ProjectRequest extends FormRequest
     public function rules()
     {
         return [
-            // 'name' => 'required|min:5|max:255'
+            'name' => 'required|string|min:2|max:255',
+            'user_id' => 'required|exists:users,id',
+            'workflow_template_id' => 'required|exists:workflow_templates,id',
         ];
     }
 
