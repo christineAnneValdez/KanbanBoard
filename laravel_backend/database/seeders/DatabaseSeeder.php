@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,8 +18,25 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
         $userRole = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+
+        $permissionNames = [
+            'add column',
+            'add task',
+        ];
+
+        foreach ($permissionNames as $permissionName) {
+            Permission::firstOrCreate([
+                'name' => $permissionName,
+                'guard_name' => 'web',
+            ]);
+        }
+
+        // Admin should have all available permissions.
+        $adminRole->syncPermissions(Permission::query()->where('guard_name', 'web')->get());
 
         $admin = User::updateOrCreate(
             ['email' => 'admin@example.com'],
@@ -45,5 +64,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
         $user2->syncRoles([$userRole]);
+
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 }

@@ -44,6 +44,7 @@
 
               <ColumnMenu
                 :column="column"
+                :can-add-task="canAddTask"
                 @add-card="showAddTask"
                 @change-color="changeColumnColor"
                 @archive="archiveColumn"
@@ -122,7 +123,7 @@
             </template>
           </draggable>
 
-          <div v-if="column.adding" class="mt-4 flex flex-col gap-2">
+          <div v-if="column.adding && canAddTask" class="mt-4 flex flex-col gap-2">
             <textarea
               v-model="column.newTask"
               rows="2"
@@ -146,7 +147,7 @@
           </div>
 
           <button
-            v-else
+            v-else-if="canAddTask"
             @click="showAddTask(column)"
             class="hover:text-gray mt-4 rounded-lg px-3 py-1 text-left text-sm text-gray-700 transition select-none hover:bg-gray-200 dark:text-gray-300 dark:hover:bg-gray-600"
             :class="{ 'pointer-events-none opacity-70': dragging }"
@@ -156,7 +157,7 @@
         </div>
       </template>
 
-      <template #footer>
+      <template v-if="canAddColumn" #footer>
         <div
           class="flex w-[85%] flex-shrink-0 snap-start flex-col items-start justify-start rounded-xl border border-gray-200 bg-gray-50 p-4 sm:w-80 dark:bg-gray-900"
         >
@@ -224,6 +225,8 @@
     editColumnTitle,
     cancelEditColumn,
     saveColumnTitle,
+    canAddTask,
+    canAddColumn,
     updateTaskInBoard,
   } = useKanbanPage();
   definePageMeta({

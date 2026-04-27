@@ -1,14 +1,12 @@
 <template>
   <div class="relative inline-block text-left">
-    <!-- ⋯ Menu Button -->
     <button
-      class="ml-2 text-gray-600 hover:text-black p-1.5 rounded-full hover:bg-gray-100 transition"
+      class="ml-2 rounded-full p-1.5 text-gray-600 transition hover:bg-gray-100 hover:text-black"
       @click.stop="toggleMenu"
     >
-      ⋯
+      ...
     </button>
 
-    <!-- Dropdown Menu -->
     <transition
       enter-active-class="transition ease-out duration-100"
       enter-from-class="opacity-0 scale-95"
@@ -19,23 +17,23 @@
     >
       <div
         v-if="open"
-        class="absolute right-0 mt-2 w-44 origin-top-right bg-white border border-gray-200 rounded-lg shadow-lg ring-1 ring-black/5 focus:outline-none z-50"
+        class="absolute right-0 z-50 mt-2 w-44 origin-top-right rounded-lg border border-gray-200 bg-white shadow-lg ring-1 ring-black/5 focus:outline-none"
       >
         <ul class="py-1 text-sm text-gray-700">
-          <li>
+          <li v-if="canAddTask">
             <button
-              class="w-full text-left px-4 py-2 hover:bg-gray-100 transition flex items-center gap-2"
+              class="flex w-full items-center gap-2 px-4 py-2 text-left transition hover:bg-gray-100"
               @click="handleAddCard"
             >
-              <span>➕</span> Add Card
+              <span>+</span> Add Card
             </button>
           </li>
           <li>
             <button
-              class="w-full text-left px-4 py-2 hover:bg-gray-100 transition flex items-center gap-2"
+              class="flex w-full items-center gap-2 px-4 py-2 text-left transition hover:bg-gray-100"
               @click="handleChangeColor"
             >
-              <span>🎨</span> Change Color
+              <span>*</span> Change Color
             </button>
           </li>
           <li>
@@ -43,10 +41,10 @@
           </li>
           <li>
             <button
-              class="w-full text-left px-4 py-2 hover:bg-gray-100 transition flex items-center gap-2 text-red-600"
+              class="flex w-full items-center gap-2 px-4 py-2 text-left text-red-600 transition hover:bg-gray-100"
               @click="handleArchive"
             >
-              <span>🗄️</span> Archive List
+              <span>x</span> Archive List
             </button>
           </li>
         </ul>
@@ -56,41 +54,49 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, onBeforeUnmount } from "vue";
 
 const props = defineProps({
-  column: Object
-})
+  column: {
+    type: Object,
+    required: true,
+  },
+  canAddTask: {
+    type: Boolean,
+    default: true,
+  },
+});
 
-const emit = defineEmits(['add-card', 'change-color', 'archive'])
+const emit = defineEmits(["add-card", "change-color", "archive"]);
 
-const open = ref(false)
+const open = ref(false);
 
 function toggleMenu() {
-  open.value = !open.value
+  open.value = !open.value;
 }
 
 function handleAddCard() {
-  emit('add-card', props.column)
-  open.value = false
+  emit("add-card", props.column);
+  open.value = false;
 }
 
 function handleChangeColor() {
-  emit('change-color', props.column)
-  open.value = false
+  emit("change-color", props.column);
+  open.value = false;
 }
 
 function handleArchive() {
-  emit('archive', props.column)
-  open.value = false
+  emit("archive", props.column);
+  open.value = false;
 }
 
 function handleClickOutside(event) {
-  if (!event.target.closest('.relative.inline-block.text-left')) {
-    open.value = false
+  if (!event.target.closest(".relative.inline-block.text-left")) {
+    open.value = false;
   }
 }
 
-onMounted(() => document.addEventListener('click', handleClickOutside))
-onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
+onMounted(() => document.addEventListener("click", handleClickOutside));
+onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside));
 </script>
+

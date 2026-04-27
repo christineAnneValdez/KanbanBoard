@@ -18,12 +18,12 @@ class WorkflowTemplateCrudController extends CrudController
     {
         CRUD::setModel(\App\Models\WorkflowTemplate::class);
         CRUD::setRoute(config('backpack.base.route_prefix') . '/workflow-template');
-        CRUD::setEntityNameStrings('workflow template', 'workflow templates');
+        CRUD::setEntityNameStrings('group template', 'group templates');
     }
 
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label('Template Name');
+        CRUD::column('name')->label('Group Template Name');
         CRUD::addColumn([
             'name' => 'stages',
             'label' => 'Stages',
@@ -44,28 +44,69 @@ class WorkflowTemplateCrudController extends CrudController
                 return implode(' -> ', $stages);
             },
         ]);
+        CRUD::addColumn([
+            'name' => 'projects',
+            'label' => 'Projects Using This Template',
+            'type' => 'closure',
+            'function' => function ($entry) {
+                return $entry->projects()
+                    ->orderBy('name')
+                    ->pluck('name')
+                    ->implode(', ');
+            },
+        ]);
     }
 
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(WorkflowTemplateRequest::class);
 
-        CRUD::field('name')->label('Template Name')->type('text');
+        CRUD::field('name')->label('Group Template Name')->type('text');
+        $currentStages = [];
+        if ($this->crud->getCurrentEntry()) {
+            $currentStages = collect($this->crud->getCurrentEntry()->stages ?? [])
+                ->map(function ($item) {
+                    if (is_array($item)) {
+                        return trim((string) ($item['name'] ?? ''));
+                    }
+
+                    return trim((string) $item);
+                })
+                ->filter()
+                ->values()
+                ->all();
+        }
+        $stagesText = old('stages_text', implode(PHP_EOL, $currentStages));
+
+        CRUD::addField([
+            'name' => 'stages_text',
+            'label' => 'Group Columns',
+            'type' => 'textarea',
+            'attributes' => [
+                'rows' => 6,
+                'placeholder' => "To Do\nIn Progress\nDone",
+            ],
+            'hint' => 'Add one column per line.',
+            'value' => $stagesText,
+        ]);
         CRUD::addField([
             'name' => 'stages',
-            'label' => 'Workflow Stages',
-            'type' => 'repeatable',
-            'new_item_label' => 'Add Stage',
-            'init_rows' => 2,
-            'min_rows' => 1,
-            'fields' => [
-                [
-                    'name' => 'name',
-                    'type' => 'text',
-                    'label' => 'Stage Name',
-                    'wrapper' => ['class' => 'form-group col-md-12'],
-                ],
-            ],
+            'type' => 'hidden',
+            'value' => (function () {
+                if (is_string(old('stages'))) {
+                    return old('stages');
+                }
+
+                $entry = $this->crud->getCurrentEntry();
+                if (! is_object($entry)) {
+                    return json_encode([], JSON_UNESCAPED_UNICODE);
+                }
+
+                return json_encode(
+                    $entry->getRawOriginal('stages') ?? ($entry->stages ?? []),
+                    JSON_UNESCAPED_UNICODE
+                );
+            })(),
         ]);
     }
 
@@ -74,4 +115,3 @@ class WorkflowTemplateCrudController extends CrudController
         $this->setupCreateOperation();
     }
 }
-

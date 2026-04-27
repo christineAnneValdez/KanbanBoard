@@ -31,6 +31,8 @@ export function useKanbanPage() {
     editColumnTitle,
     cancelEditColumn,
     saveColumnTitle,
+    canAddTask,
+    canAddColumn,
   } = useKanbanBoard(projectId)
 
   const updateTaskInBoard = (updatedTask) => {
@@ -82,6 +84,8 @@ export function useKanbanPage() {
     editColumnTitle,
     cancelEditColumn,
     saveColumnTitle,
+    canAddTask,
+    canAddColumn,
     updateTaskInBoard,
   }
 }

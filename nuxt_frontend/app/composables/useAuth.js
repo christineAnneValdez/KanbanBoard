@@ -56,6 +56,8 @@ export const useAuth = () => {
   const isLoading = authLoading();
   const checkPromise = authCheckPromise();
   const isAuthenticated = computed(() => !!token.value && !!user.value);
+  const permissionSet = computed(() => new Set(user.value?.permissions || []));
+  const roleSet = computed(() => new Set(user.value?.roles || []));
 
   const hydrateFromStorage = () => {
     if (!import.meta.client) {
@@ -194,6 +196,9 @@ export const useAuth = () => {
     }
   };
 
+  const hasPermission = (permission) => permissionSet.value.has(permission);
+  const hasRole = (role) => roleSet.value.has(role);
+
   return {
     user,
     token,
@@ -204,5 +209,7 @@ export const useAuth = () => {
     register,
     checkAuth,
     logout,
+    hasPermission,
+    hasRole,
   };
 };

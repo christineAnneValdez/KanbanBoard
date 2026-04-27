@@ -1,9 +1,9 @@
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { resolveApiBase } from '@/composables/useApi'
 
 export function useKanbanBoard(projectId) {
-  const { token } = useAuth()
+  const { token, hasPermission, hasRole } = useAuth()
   const runtimeConfig = useRuntimeConfig()
   const API_BASE = resolveApiBase(runtimeConfig)
   const columns = ref([])
@@ -11,6 +11,12 @@ export function useKanbanBoard(projectId) {
   const addingColumn = ref(false)
   const newColumnTitle = ref('')
   const board = ref(null)
+  const canAddTask = computed(() =>
+    hasRole('admin') || hasPermission('add task')
+  )
+  const canAddColumn = computed(() =>
+    hasRole('admin') || hasPermission('add column')
+  )
 
   const authHeaders = () =>
     token.value
@@ -51,6 +57,8 @@ export function useKanbanBoard(projectId) {
 
 
   const addTask = async (column) => {
+    if (!canAddTask.value) return
+
     const name = column.newTask.trim()
     if (!name) return
 
@@ -80,17 +88,23 @@ export function useKanbanBoard(projectId) {
   }
 
   const showAddTask = (column) => {
+    if (!canAddTask.value) return
+
     column.adding = true
     column.newTask = ''
   }
 
   // --- Add column ---
   const showAddColumn = () => {
+    if (!canAddColumn.value) return
+
     addingColumn.value = true
     newColumnTitle.value = ''
   }
 
   const addColumn = async () => {
+    if (!canAddColumn.value) return
+
     const title = newColumnTitle.value.trim()
     if (!title) return
 
@@ -228,5 +242,7 @@ export function useKanbanBoard(projectId) {
     editColumnTitle,
     cancelEditColumn,
     saveColumnTitle,
+    canAddTask,
+    canAddColumn,
   }
 }

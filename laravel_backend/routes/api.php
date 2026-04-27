@@ -24,12 +24,59 @@ $canAccessProject = function (User $user, Project $project): bool {
     return $project->members()->where('users.id', $user->id)->exists();
 };
 
+/**
+ * Keep a project's assigned workflow template in sync with its current columns.
+ */
+$syncTemplateStagesFromProjectGroups = function (Project $project): void {
+    $project->loadMissing('workflowTemplate');
+    if (! $project->workflowTemplate) {
+        return;
+    }
+
+    $stages = Group::query()
+        ->where('project_id', $project->id)
+        ->orderBy('sort')
+        ->orderBy('id')
+        ->pluck('name')
+        ->map(fn ($name) => trim((string) $name))
+        ->filter()
+        ->unique(fn ($name) => mb_strtolower($name))
+        ->values()
+        ->all();
+
+    if (count($stages) === 0) {
+        return;
+    }
+
+    $project->workflowTemplate->update([
+        'stages' => $stages,
+    ]);
+};
+
+$canAddColumn = function (User $user): bool {
+    $isAdmin = method_exists($user, 'hasRole') && $user->hasRole('admin');
+    return $isAdmin || $user->can('add column');
+};
+
+$canAddTask = function (User $user): bool {
+    $isAdmin = method_exists($user, 'hasRole') && $user->hasRole('admin');
+    return $isAdmin || $user->can('add task');
+};
+
 Route::post("/login", [AuthController::class, "login"]);
 Route::post("/register", [AuthController::class, "register"]);
 Route::post("/logout", [AuthController::class, "logout"])->middleware("auth:sanctum");
 Route::get("/user", [AuthController::class, "user"])->middleware("auth:sanctum");
 Route::middleware('auth:sanctum')->get('/me', function (Request $request) {
-    return $request->user();
+    $user = $request->user();
+    $user->loadMissing('roles:id,name', 'permissions:id,name');
+
+    return [
+        'user' => array_merge($user->toArray(), [
+            'roles' => $user->roles->pluck('name')->values()->all(),
+            'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+        ]),
+    ];
 });
 Route::patch('/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
 Route::post('/profile', [AuthController::class, 'updateProfile'])->middleware('auth:sanctum');
@@ -80,7 +127,11 @@ Route::get('/projects/{project}/kanban', function (Request $request, Project $pr
     ];
 })->middleware('auth:sanctum');
 
-Route::post('/groups', function (Request $request) use ($canAccessProject) {
+Route::post('/groups', function (Request $request) use ($canAccessProject, $syncTemplateStagesFromProjectGroups, $canAddColumn) {
+    if (! $canAddColumn($request->user())) {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'sort' => 'nullable|integer',
@@ -98,10 +149,17 @@ Route::post('/groups', function (Request $request) use ($canAccessProject) {
         'user_id' => $request->user()->id,
         'project_id' => $project->id,
     ]);
+
+    $syncTemplateStagesFromProjectGroups($project);
+
     return response()->json($group, 201);
 })->middleware('auth:sanctum');
 
-Route::post('/tasks', function (Request $request) use ($canAccessProject) {
+Route::post('/tasks', function (Request $request) use ($canAccessProject, $canAddTask) {
+    if (! $canAddTask($request->user())) {
+        return response()->json(['message' => 'Forbidden'], 403);
+    }
+
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'description' => 'nullable|string|max:1000',
@@ -164,7 +222,7 @@ Route::match(['put', 'patch'], '/tasks/{task}', function (Request $request, Task
 })->middleware('auth:sanctum');
 
 
-Route::match(['put', 'patch'], '/groups/{group}', function (Request $request, Group $group) use ($canAccessProject) {
+Route::match(['put', 'patch'], '/groups/{group}', function (Request $request, Group $group) use ($canAccessProject, $syncTemplateStagesFromProjectGroups) {
     if (! $group->project || ! $canAccessProject($request->user(), $group->project)) {
         return response()->json(['message' => 'Not found'], 404);
     }
@@ -175,6 +233,10 @@ Route::match(['put', 'patch'], '/groups/{group}', function (Request $request, Gr
     ]);
 
     $group->update($validated);
+
+    if ($group->project) {
+        $syncTemplateStagesFromProjectGroups($group->project);
+    }
 
     return response()->json($group);
 })->middleware('auth:sanctum');

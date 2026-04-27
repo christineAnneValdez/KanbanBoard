@@ -10,6 +10,16 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    private function authUserPayload(User $user): array
+    {
+        $user->loadMissing('roles:id,name', 'permissions:id,name');
+
+        return array_merge($user->toArray(), [
+            'roles' => $user->roles->pluck('name')->values()->all(),
+            'permissions' => $user->getAllPermissions()->pluck('name')->values()->all(),
+        ]);
+    }
+
     public function register(Request $request)
     {
         $validated = $request->validate([
@@ -27,7 +37,7 @@ class AuthController extends Controller
         $token = $user->createToken("api")->plainTextToken;
 
         return response()->json([
-            "user"  => $user,
+            "user"  => $this->authUserPayload($user),
             "token" => $token,
         ]);
     }
@@ -48,14 +58,14 @@ class AuthController extends Controller
         $token = $user->createToken("api")->plainTextToken;
 
         return response()->json([
-            "user"  => $user,
+            "user"  => $this->authUserPayload($user),
             "token" => $token,
         ]);
     }
 
     public function user(Request $request)
     {
-        return $request->user();
+        return $this->authUserPayload($request->user());
     }
 
     public function logout(Request $request)
@@ -111,7 +121,7 @@ class AuthController extends Controller
         $user->update($updates);
 
         return response()->json([
-            'user' => $user->fresh(),
+            'user' => $this->authUserPayload($user->fresh()),
         ]);
     }
 

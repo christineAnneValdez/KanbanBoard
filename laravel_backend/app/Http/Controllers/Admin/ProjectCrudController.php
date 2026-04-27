@@ -60,7 +60,7 @@ class ProjectCrudController extends CrudController
             'entity' => 'workflowTemplate',
             'attribute' => 'name',
             'model' => "App\Models\WorkflowTemplate",
-            'label' => 'Workflow Template'
+            'label' => 'Group Template'
         ]);
 
         CRUD::addColumn([
@@ -101,7 +101,7 @@ class ProjectCrudController extends CrudController
             'entity' => 'workflowTemplate',
             'attribute' => 'name',
             'model' => "App\Models\WorkflowTemplate",
-            'label' => 'Workflow Template'
+            'label' => 'Group Template'
         ]);
 
         CRUD::addField([
@@ -141,7 +141,7 @@ class ProjectCrudController extends CrudController
             'entity' => 'workflowTemplate',
             'attribute' => 'name',
             'model' => "App\Models\WorkflowTemplate",
-            'label' => 'Workflow Template'
+            'label' => 'Group Template'
         ]);
 
          CRUD::addColumn([

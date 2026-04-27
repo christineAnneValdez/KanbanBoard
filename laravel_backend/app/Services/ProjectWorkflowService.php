@@ -35,14 +35,6 @@ class ProjectWorkflowService
             ->orderBy('id')
             ->get();
 
-        $usedGroupIds = Group::query()
-            ->where('project_id', $project->id)
-            ->whereHas('tasks')
-            ->pluck('id')
-            ->all();
-
-        $usedGroupIdsLookup = array_flip($usedGroupIds);
-
         $matchedGroupIds = [];
 
         foreach ($stages->values() as $index => $stageName) {
@@ -70,17 +62,8 @@ class ProjectWorkflowService
             $matchedGroupIds[] = $created->id;
         }
 
-        $extraGroups = $existingGroups->filter(
-            fn (Group $group) => ! in_array($group->id, $matchedGroupIds, true)
-        );
-
-        foreach ($extraGroups as $group) {
-            if (isset($usedGroupIdsLookup[$group->id])) {
-                continue;
-            }
-
-            $group->delete();
-        }
+        // Keep unmatched project-specific columns as custom columns.
+        // This lets users add extra columns from the Kanban board without losing them on refresh.
     }
 
     private function normalizeStages(array $stages): Collection
