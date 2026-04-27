@@ -60,13 +60,6 @@ export default defineNuxtConfig({
     clientBundle: {
       scan: true,
       sizeLimitKb: 0,
-      icons: [
-        "heroicons:arrow-right-start-on-rectangle",
-        "heroicons:bars-3",
-        "heroicons:clipboard-document-list",
-        "heroicons:cog-6-tooth",
-        "heroicons:home",
-      ],
     },
 
     mode: "svg",
